@@ -19,7 +19,7 @@ title:  "Russian Doll Writeup!"
 <center><p style="font-size:30px">.  .  .</p></center>
 <h2 style="padding-left:20%;padding-right:20%">Part 2:</h2>
 <h3 style="padding-left:20%;padding-right:20%">I have written a simple Python code that loops through the zip and extracts only the text file to a given location.</h3>
-<pre  ><code style="display: block;padding-left:20%;padding-right:20%;background-color: #eee;color:black;">
+<pre><code style="display: block;padding-left:20%;padding-right:20%;background-color: #eee;color:black;">
 import os
 import shutil
 import zipfile
@@ -36,5 +36,13 @@ with zipfile.ZipFile(my_zip) as zip_file:
         source = zip_file.open(member)
         target = open(os.path.join(my_dir, filename), "wb")
         with source, target:
-            shutil.copyfileobj(source, target)</code>
-<pre>
+            shutil.copyfileobj(source, target)
+            
+</code></pre>
+
+
+
+
+<h3 style="padding-left:20%;padding-right:20%">Saved the python script in the same file as the zip.</h3>
+<h3 style="padding-left:20%;padding-right:20%">Upon running the script we get two files, with one being the flag!</h3>
+
