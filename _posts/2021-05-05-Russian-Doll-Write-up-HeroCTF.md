@@ -19,7 +19,7 @@ title:  "Russian Doll Writeup!"
 <center><p style="font-size:30px">.  .  .</p></center>
 <h2 style="padding-left:25%;padding-right:25%">Part 2:</h2>
 <h3 style="padding-left:25%;padding-right:25%">I have written a simple Python code that loops through the zip and extracts only the text file to a given location.</h3>
-<pre ><code style="margin: auto;display: block;padding-left:30%;padding-right:25%;background-color: #eee;">
+<pre ><code style="margin: auto;display: block;padding-left:30%;padding-right:25%;background-color: #eee;color:black;">
 import os
 import shutil
 import zipfile
