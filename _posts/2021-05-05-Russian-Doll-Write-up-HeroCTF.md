@@ -4,7 +4,7 @@ title:  "Russian Doll Writeup!"
 ---
 
 <h1 style="padding-left:20%;padding-right:20%">Russian Doll — Write up (HeroCTF)</h1>
-<h5 style="padding-left:20%;padding-right:20%"><i>This is my write-up for the ‘Russian Doll’ Challenge in HeroCTF 2021</i></h5>
+<p style="padding-left:20%;padding-right:20%"><i>This is my write-up for the ‘Russian Doll’ Challenge in HeroCTF 2021</i></p>
 
 <h2 style="padding-left:20%;padding-right:20%">Part 1: Assessing the given material:</h2>
 
