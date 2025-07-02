@@ -16,10 +16,10 @@
       background: radial-gradient(circle at top left, #1a1a1a, #000);
       font-family: 'DM Sans', sans-serif;
       color: #f4f4f4;
-      overflow: hidden;
+      overflow-x: hidden;
     }
     .container {
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -40,7 +40,7 @@
       z-index: 1;
     }
     h1 {
-      font-size: 4rem;
+      font-size: 3rem;
       font-weight: 700;
       background: linear-gradient(90deg, #0ff, #f0f);
       -webkit-background-clip: text;
@@ -49,14 +49,14 @@
       letter-spacing: 1px;
     }
     p {
-      font-size: 1.1rem;
-      margin: 1.5rem 0;
+      font-size: 1rem;
+      margin: 1rem 0;
       max-width: 700px;
-      line-height: 1.8;
+      line-height: 1.6;
       color: #bbbbbb;
     }
     .intro {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       color: #dddddd;
       margin-bottom: 1rem;
       animation: fadeSlide 2s ease-in;
@@ -71,9 +71,12 @@
     .links {
       margin-top: 2rem;
       animation: fadeSlide 4s ease-in;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
     }
     .links a {
-      margin: 0 1rem;
       text-decoration: none;
       color: #00ffff;
       font-weight: 600;
@@ -167,6 +170,19 @@
     @keyframes float {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      p, .intro, .bio {
+        font-size: 1rem;
+        padding: 0 1rem;
+      }
+      .links a {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
