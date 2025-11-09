@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A little question... 💖</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Caveat', 'cursive'],
+                        'body': ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 1.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fall': 'fall 10s linear infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        fall: {
+                            '0%': { transform: 'translateY(-10vh) rotate(0deg)', opacity: 1 },
+                            '100%': { transform: 'translateY(110vh) rotate(360deg)', opacity: 0 },
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+
+    <!-- 4. Custom CSS for the "cute" and "rosy" theme -->
+    <style>
+        /* Set the main background color and fonts */
+        body {
+            background-color: #fff1f2; /* Super light pink (rose-50) */
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Hide overflow to keep petals neat */
+        }
+
+        /* Container for the falling petals */
+        .petal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Individual petal styling */
+        .petal {
+            position: absolute;
+            top: -10vh;
+            font-size: 1.5rem; /* Petal size */
+            color: #fda4af; /* rose-300 */
+            animation: fall 10s linear infinite;
+        }
+
+        /* Stagger the animations for a natural effect */
+        .petal:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 10s; }
+        .petal:nth-child(2) { left: 20%; animation-delay: -5s; animation-duration: 12s; }
+        .petal:nth-child(3) { left: 30%; animation-delay: -2s; animation-duration: 9s; }
+        .petal:nth-child(4) { left: 40%; animation-delay: -7s; animation-duration: 11s; }
+        .petal:nth-child(5) { left: 50%; animation-delay: -1s; animation-duration: 8s; }
+        .petal:nth-child(6) { left: 60%; animation-delay: -6s; animation-duration: 13s; }
+        .petal:nth-child(7) { left: 70%; animation-delay: -3s; animation-duration: 10s; }
+        .petal:nth-child(8) { left: 80%; animation-delay: -8s; animation-duration: 12s; }
+        .petal:nth-child(9) { left: 90%; animation-delay: -4s; animation-duration: 9s; }
+        .petal:nth-child(10) { left: 5%; animation-delay: -9s; animation-duration: 11s; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Petal Container -->
+    <div class="petal-container">
+        <div class="petal">🌹</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌷</div>
+        <div class="petal">🌹</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌷</div>
+        <div class="petal">🌹</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌷</div>
+        <div class="petal">🌹</div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        
+        <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl shadow-rose-200 border-4 border-rose-300 p-8 md:p-12 text-center animate-fade-in z-10">
+            
+            <!-- Header -->
+            <h1 class="font-display text-5xl md:text-6xl text-rose-600">
+                A secret adventure?
+            </h1>
+            <p class="font-display text-3xl text-rose-400 mt-2">
+                Starting with lunch?
+            </p>
+
+            <!-- Divider -->
+            <div class="w-24 h-1 bg-rose-200 mx-auto my-6 rounded-full"></div>
+
+            <!-- The Riddle / Clues -->
+            <div class="text-left text-lg text-gray-700 font-body space-y-6">
+                <p>I have a little adventure planned... 🌹</p>
+                
+                <!-- Clue 1: Lunch -->
+                <div>
+                    <h2 class="font-bold text-xl text-rose-500">Part 1: The Fuel</h2>
+                    <p class="mt-1">
+                        First, a delicious start to fuel our journey. Something yummy, just for us.
+                    </p>
+                </div>
+                
+                <!-- Clue 2: Rock Climbing -->
+                <div>
+                    <h2 class="font-bold text-xl text-rose-500">Part 2: The Ascent</h2>
+                    <p class="mt-1">
+                        Then, we'll defy gravity and aim for the top. A little challenge.
+                        <span class="italic text-rose-400">(Nenu nee pakkana untanu 😁)</span>
+                    </p>
+                </div>
+
+                <!-- Clue 3: Garden -->
+                <div>
+                    <h2 class="font-bold text-xl text-rose-500">Part 3: The Reward</h2>
+                    <p class="mt-1">
+                        Afterwards, a quiet walk among the blooms. A place to wander and... well, you'll see. 🤫
+                    </p>
+                </div>
+            </div>
+
+            <!-- The Big Question -->
+            <p class="font-display text-4xl text-rose-600 mt-10">
+                So... are you in, <span class="italic text-rose-500">naa bangaram</span>?
+            </p>
+
+            <!-- The "Yes" Button -->
+            <button 
+                id="yesButton"
+                class="mt-8 bg-rose-500 text-white font-bold font-body text-2xl px-10 py-4 rounded-full shadow-lg shadow-rose-300 transition-all duration-300 transform hover:scale-110 hover:bg-rose-600 focus:outline-none focus:ring-4 focus:ring-rose-300 animate-pulse-slow">
+                Yes, I'm in!
+            </button>
+
+            <!-- Signature -->
+            <p class="font-display text-2xl text-rose-400 mt-8 text-right w-full pr-2 md:pr-4">
+                - your boyfie - Brij
+            </p>
+        </div>
+        
+        <div id="confirmation" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-md animate-fade-in">
+                <h2 class="font-display text-5xl text-rose-500">Yay! 🎉</h2>
+                <p class="font-body text-xl text-gray-700 mt-4">
+                    Tvaralo neenu chusthanu!
+                </p>
+                <p class="font-body text-lg text-rose-500 mt-4 italic">
+                    (P.S. Wear something comfy you can move in! 😉)
+                </p>
+                <button 
+                    id="closeButton"
+                    class="mt-6 bg-rose-200 text-rose-700 font-bold px-6 py-2 rounded-full hover:bg-rose-300 transition-all">
+                    Okay!
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 5. Simple JavaScript for the button -->
+    <script>
+        const yesButton = document.getElementById('yesButton');
+        const confirmation = document.getElementById('confirmation');
+        const closeButton = document.getElementById('closeButton');
+
+        // Show the confirmation message
+        yesButton.addEventListener('click', () => {
+            confirmation.classList.remove('hidden');
+        });
+
+        // Hide the confirmation message
+        closeButton.addEventListener('click', () => {
+            confirmation.classList.add('hidden');
+        });
+    </script>
+
+</body>
+</html>
