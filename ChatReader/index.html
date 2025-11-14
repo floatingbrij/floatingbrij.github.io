@@ -1,0 +1,371 @@
+<!--
+WhatsApp Chat Viewer (single-file)
+Usage:
+ - Upload a ZIP containing _chat.txt (WhatsApp export) and all attachments in the same folder.
+ - The page parses the chat and displays messages inline with images/videos/embed for PDFs, downloadable links for other files.
+ - Drop this file (whatsapp_chat_viewer.html) on GitHub Pages (as a subpage) or open locally in a browser.
+
+Notes:
+ - Uses JSZip (client-side) to read zip without uploading anywhere.
+ - Parsing aims to be robust to common WhatsApp export formats like:
+    [20/12/23, 9:22:29 PM] Name: message
+    20/12/23, 21:22 - Name: message
+ - Attachment markers like "<attached: filename.jpg>" are resolved to files inside the zip.
+
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WhatsApp Chat Viewer (Client-side)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-+6YbN6t2k8wS3V3XG8u6wq3F3tqJ03xI+c4p9wqF6b9p7wQm0q3qf2bP1zFqG8z9k1xqG1b2x5c3d4e6f7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    :root{--bg:#0f1720;--card:#0b1320;--muted:#9aa4b2;--accent:#6ee7b7}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,#071021 0%, #081827 100%);color:#e6eef6;padding:18px}
+    .container{max-width:1100px;margin:0 auto}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+    .logo{width:48px;height:48px;background:linear-gradient(135deg,#72e0b6,#6b8bf3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#012}
+    h1{font-size:20px;margin:0}
+    .controls{display:flex;gap:8px;align-items:center;margin-left:auto}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:12px}
+    input[type=file]{display:block}
+    .meta{color:var(--muted);font-size:13px}
+    #messages{margin-top:14px}
+    .message{display:flex;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px}
+    .avatar{width:40px;height:40px;border-radius:50%;background:#133243;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent);flex-shrink:0}
+    .bubble{background:rgba(255,255,255,0.03);padding:8px;border-radius:8px;max-width:78%}
+    .metaRow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+    .sender{font-weight:700}
+    .time{color:var(--muted);font-size:12px}
+    img.attachment{max-width:320px;border-radius:6px;margin-top:6px;display:block}
+    video{max-width:420px;margin-top:6px;border-radius:6px}
+    .toolbar{display:flex;gap:8px;margin-bottom:10px}
+    .search{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+    .small{font-size:13px;color:var(--muted)}
+    .attachment-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .att-thumb{width:110px;height:80px;background:#06101a;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    a.btn{background:#0f1724;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);color:inherit;text-decoration:none}
+    footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+    @media (max-width:700px){.avatar{display:none}.bubble{max-width:100%}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">WA</div>
+      <div>
+        <h1>WhatsApp Chat Viewer (client-side)</h1>
+        <div class="meta">Upload a ZIP containing <code>_chat.txt</code> and attachments (same folder)</div>
+      </div>
+
+      <div class="controls">
+        <label class="btn">Choose ZIP <input id="zipfile" type="file" accept=".zip" style="display:none"></label>
+        <button id="openZip" class="btn">Open ZIP</button>
+        <button id="downloadJson" class="btn" title="Download parsed JSON">Export JSON</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="toolbar">
+        <input id="search" class="search" placeholder="Search messages or sender" />
+        <select id="senderFilter" class="search"><option value="">All senders</option></select>
+        <input id="dateFrom" type="date" class="search" />
+        <input id="dateTo" type="date" class="search" />
+        <button id="clearFilters" class="btn">Clear</button>
+      </div>
+
+      <div id="messages" aria-live="polite">Drop a ZIP or click Open ZIP to start.</div>
+    </div>
+
+    <footer>Pure client-side — nothing is uploaded. Put this file on GitHub Pages to serve as a static viewer.</footer>
+  </div>
+
+<script>
+// Robust WhatsApp chat parser + renderer
+// Author: ChatGPT (adapt and extend as needed)
+
+const zipInput = document.getElementById('zipfile');
+const openBtn = document.getElementById('openZip');
+const messagesEl = document.getElementById('messages');
+const searchEl = document.getElementById('search');
+const senderFilter = document.getElementById('senderFilter');
+const dateFrom = document.getElementById('dateFrom');
+const dateTo = document.getElementById('dateTo');
+const clearFilters = document.getElementById('clearFilters');
+const downloadJson = document.getElementById('downloadJson');
+
+let currentZipFile = null;
+let parsed = {messages:[], attachments:{}};
+
+openBtn.addEventListener('click', ()=> zipInput.click());
+zipInput.addEventListener('change', (e)=>{ currentZipFile = e.target.files[0]; loadZip(); });
+
+searchEl.addEventListener('input', renderFiltered);
+senderFilter.addEventListener('change', renderFiltered);
+dateFrom.addEventListener('change', renderFiltered);
+dateTo.addEventListener('change', renderFiltered);
+clearFilters.addEventListener('click', ()=>{searchEl.value='';senderFilter.value='';dateFrom.value='';dateTo.value='';renderMessages(parsed.messages)});
+
+downloadJson.addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(parsed, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='chat_export.json'; document.body.appendChild(a); a.click(); a.remove();
+});
+
+async function loadZip(){
+  if(!currentZipFile) return;
+  messagesEl.innerHTML = '<div class="small">Reading zip...</div>';
+  const arrayBuffer = await currentZipFile.arrayBuffer();
+  const jszip = new JSZip();
+  const zip = await jszip.loadAsync(arrayBuffer);
+
+  // find _chat.txt (sometimes WhatsApp names can be 'chat.txt' or 'WhatsApp Chat with X.txt')
+  const possibleNames = Object.keys(zip.files);
+  let chatFileName = possibleNames.find(n => n.toLowerCase().includes('_chat.txt'))
+                  || possibleNames.find(n => n.toLowerCase().endsWith('.txt') && n.toLowerCase().includes('chat'))
+                  || possibleNames.find(n => n.toLowerCase().endsWith('.txt'));
+  if(!chatFileName){ messagesEl.innerHTML = '<div class="small">No .txt chat file found in zip.</div>'; return; }
+
+  const chatText = await zip.file(chatFileName).async('string');
+
+  // load attachments map
+  const attachments = {};
+  for(const name of possibleNames){
+    if(name === chatFileName) continue;
+    // store file objects
+    attachments[name.split('/').pop()] = zip.file(name);
+  }
+
+  parsed = parseChat(chatText, attachments);
+  parsed.attachments = Object.keys(attachments);
+  // keep zip object for serving blobs
+  parsed._zip = zip;
+  renderMessages(parsed.messages);
+  populateSenderFilter(parsed.messages);
+}
+
+function parseChat(text, attachments){
+  // Normalize CRLF
+  text = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines = text.split('\n');
+  const messages = [];
+
+  // Regex patterns for different WhatsApp formats
+  const patterns = [
+    // [20/12/23, 9:22:29 PM] Name: message
+    /^\[(?<date>\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(?<time>[^\]]+)\]\s*(?<sender>[^:]+):\s*(?<msg>.*)$/,
+    // 20/12/23, 21:22 - Name: message
+    /^(?<date>\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(?<time>\d{1,2}:\d{2})(?:\s*[APMapm\.]{0,4})?\s*-\s*(?<sender>[^:]+):\s*(?<msg>.*)$/,
+    // 20/12/23, 9:22 - Name: message (alternate)
+    /^(?<date>\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(?<sender>[^:]+):\s*(?<msg>.*)$/,
+  ];
+
+  let current = null;
+  for(let line of lines){
+    if(!line.trim()) continue;
+    let matched = null;
+    for(const p of patterns){
+      const m = line.match(p);
+      if(m){ matched = m; break; }
+    }
+    if(matched && matched.groups){
+      // push previous
+      if(current) messages.push(current);
+      const d = matched.groups.date.trim();
+      const t = matched.groups.time? matched.groups.time.trim() : '';
+      const sender = matched.groups.sender ? matched.groups.sender.trim() : 'Unknown';
+      const msg = matched.groups.msg || '';
+      const dt = parseDateTime(d, t);
+
+      current = {dateRaw:d, timeRaw:t, datetime: dt, sender, text: msg, attachments: []};
+      // extract attachment markers in message
+      extractAttachedFiles(current, attachments);
+    } else {
+      // continuation line of previous message
+      if(current) {
+        current.text += '\n' + line;
+        extractAttachedFiles(current, attachments);
+      } else {
+        // stray line - create a message
+        current = {dateRaw:null, timeRaw:null, datetime:null, sender:'Unknown', text:line, attachments:[]};
+        extractAttachedFiles(current, attachments);
+      }
+    }
+  }
+  if(current) messages.push(current);
+
+  // sort by datetime if present
+  messages.sort((a,b)=>{
+    if(a.datetime && b.datetime) return a.datetime - b.datetime;
+    return 0;
+  });
+
+  return {messages};
+}
+
+function extractAttachedFiles(msgObj, attachmentsMap){
+  // Look for patterns like <attached: filename.jpg> or <attached: 00001-PHOTO-...jpg>
+  const attRegex = /<attached:\s*([^>]+)>/gi;
+  let m;
+  while((m = attRegex.exec(msgObj.text)) !== null){
+    const fname = m[1].trim();
+    msgObj.attachments.push(fname);
+  }
+  // also look for filenames present alone on line
+  const fileInline = msgObj.text.match(/([\w\-]+\.(?:jpg|jpeg|png|gif|mp4|mov|pdf|heic|webp))/gi);
+  if(fileInline){
+    fileInline.forEach(f=>{ if(!msgObj.attachments.includes(f)) msgObj.attachments.push(f); });
+  }
+}
+
+function parseDateTime(dateStr, timeStr){
+  // Try multiple formats. WhatsApp dates often dd/MM/yy or dd/MM/yyyy
+  try{
+    // normalize separators
+    const parts = dateStr.split('/').map(s=>s.trim());
+    if(parts.length>=3){
+      let day=parts[0], month=parts[1], year=parts[2];
+      if(year.length===2) year = '20'+year;
+      let time = timeStr || '00:00';
+      // remove AM/PM if present
+      const ampmMatch = time.match(/(AM|PM|am|pm)/);
+      let dateIso = `${year.padStart(4,'0')}-${month.padStart(2,'0')}-${day.padStart(2,'0')}T`;
+      // try to normalize time
+      let t = time.replace(/\s*[APMapm\.]{1,4}/g,'').trim();
+      if(!t) t='00:00';
+      // if time has seconds keep it
+      if(!t.includes(':')) t = t + ':00';
+      dateIso += t;
+      let dt = new Date(dateIso);
+      if(ampmMatch){
+        // handle AM/PM manually if needed
+        const ampm = ampmMatch[0].toLowerCase();
+        let hh = parseInt(t.split(':')[0],10);
+        if(ampm==='pm' && hh<12) hh+=12;
+        if(ampm==='am' && hh===12) hh=0;
+        const mm = parseInt(t.split(':')[1]||'0',10);
+        dt = new Date(parseInt(year,10), parseInt(month,10)-1, parseInt(day,10), hh, mm);
+      }
+      return dt;
+    }
+  }catch(e){ }
+  return null;
+}
+
+function renderMessages(messages){
+  if(!messages || messages.length===0){ messagesEl.innerHTML = '<div class="small">No messages parsed.</div>'; return; }
+  messagesEl.innerHTML = '';
+  for(const m of messages){
+    const el = renderMessage(m);
+    messagesEl.appendChild(el);
+  }
+}
+
+function renderMessage(m){
+  const wrapper = document.createElement('div'); wrapper.className='message';
+  const avatar = document.createElement('div'); avatar.className='avatar'; avatar.textContent = initials(m.sender || 'U');
+  const bubble = document.createElement('div'); bubble.className='bubble';
+  const metaRow = document.createElement('div'); metaRow.className='metaRow';
+  const sender = document.createElement('div'); sender.className='sender'; sender.textContent = m.sender || 'Unknown';
+  const time = document.createElement('div'); time.className='time'; time.textContent = m.datetime? formatDate(m.datetime) : (m.dateRaw||'');
+  metaRow.appendChild(sender); metaRow.appendChild(time);
+  bubble.appendChild(metaRow);
+
+  const textEl = document.createElement('div'); textEl.innerHTML = linkify(escapeHtml(m.text || ''));
+  bubble.appendChild(textEl);
+
+  // attachments
+  if(m.attachments && m.attachments.length){
+    const attWrap = document.createElement('div'); attWrap.className='attachment-list';
+    for(const fname of m.attachments){
+      const aEl = makeAttachmentElement(fname);
+      attWrap.appendChild(aEl);
+    }
+    bubble.appendChild(attWrap);
+  }
+
+  wrapper.appendChild(avatar); wrapper.appendChild(bubble);
+  return wrapper;
+}
+
+function makeAttachmentElement(fname){
+  const div = document.createElement('div');
+  const lc = fname.toLowerCase();
+  const link = document.createElement('a'); link.className='att-thumb';
+  // If file present in zip, create blob URL
+  let fileEntry = null;
+  if(parsed._zip){
+    // try exact name; also try stripping folders
+    fileEntry = parsed._zip.file(fname) || parsed._zip.file('./'+fname) || parsed._zip.file(Object.keys(parsed._zip.files).find(k=>k.endsWith('/'+fname))) || parsed._zip.file(Object.keys(parsed._zip.files).find(k=>k.endsWith(fname)));
+  }
+
+  if(lc.match(/\.(jpe?g|png|gif|webp|heic)$/)){
+    if(fileEntry) fileEntry.async('blob').then(b=>{ link.href = URL.createObjectURL(b); link.target='_blank'; const img = document.createElement('img'); img.className='attachment'; img.src = link.href; link.appendChild(img); });
+    else{ link.textContent = fname; link.href='#'; }
+  } else if(lc.match(/\.(mp4|mov|webm|mkv)$/)){
+    if(fileEntry) fileEntry.async('blob').then(b=>{ const url = URL.createObjectURL(b); const v = document.createElement('video'); v.controls=true; v.src=url; v.setAttribute('playsinline',''); v.style.maxWidth='320px'; div.appendChild(v); });
+    else{ link.textContent = fname; }
+  } else if(lc.match(/\.pdf$/)){
+    if(fileEntry) fileEntry.async('blob').then(b=>{ const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href=url; a.target='_blank'; a.textContent = fname; a.className='btn'; div.appendChild(a); });
+    else{ link.textContent = fname; }
+  } else {
+    // generic download link
+    if(fileEntry) fileEntry.async('blob').then(b=>{ const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href=url; a.textContent = fname; a.download = fname; a.className='btn'; div.appendChild(a); });
+    else{ link.textContent = fname; }
+  }
+  if(link.childNodes.length===0) link.appendChild(document.createTextNode(fname));
+  div.appendChild(link);
+  return div;
+}
+
+function initials(name){
+  if(!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] || 'U') + (parts[1] ? parts[1][0] : '');
+}
+
+function formatDate(d){
+  // return readable date-time
+  try{
+    return d.toLocaleString();
+  }catch(e){ return String(d); }
+}
+
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function linkify(s){
+  // simple URL linkify
+  return s.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>').replace(/www\.[^\s]+/g, (m)=>'<a href="https://'+m+'" target="_blank">'+m+'</a>');
+}
+
+function populateSenderFilter(messages){
+  const senders = Array.from(new Set(messages.map(m=>m.sender))).sort();
+  senderFilter.innerHTML = '<option value="">All senders</option>' + senders.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+}
+
+function renderFiltered(){
+  const q = searchEl.value.toLowerCase();
+  const sender = senderFilter.value;
+  const from = dateFrom.value ? new Date(dateFrom.value) : null;
+  const to = dateTo.value ? new Date(dateTo.value) : null;
+  const filtered = parsed.messages.filter(m=>{
+    if(sender && m.sender!==sender) return false;
+    if(q){ if(!( (m.text||'').toLowerCase().includes(q) || (m.sender||'').toLowerCase().includes(q) || (m.attachments||[]).join(' ').toLowerCase().includes(q) )) return false; }
+    if(from && m.datetime){ if(m.datetime < from) return false; }
+    if(to && m.datetime){ // include the whole day
+      const dayEnd = new Date(to); dayEnd.setDate(dayEnd.getDate()+1);
+      if(m.datetime >= dayEnd) return false;
+    }
+    return true;
+  });
+  renderMessages(filtered);
+}
+
+// allow drop
+window.addEventListener('dragover', e=>{ e.preventDefault(); });
+window.addEventListener('drop', async (e)=>{ e.preventDefault(); const f = e.dataTransfer.files[0]; if(f && f.name.toLowerCase().endsWith('.zip')){ currentZipFile = f; await loadZip(); }});
+
+</script>
+</body>
+</html>
