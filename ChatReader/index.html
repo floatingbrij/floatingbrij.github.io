@@ -1,371 +1,702 @@
-<!--
-WhatsApp Chat Viewer (single-file)
-Usage:
- - Upload a ZIP containing _chat.txt (WhatsApp export) and all attachments in the same folder.
- - The page parses the chat and displays messages inline with images/videos/embed for PDFs, downloadable links for other files.
- - Drop this file (whatsapp_chat_viewer.html) on GitHub Pages (as a subpage) or open locally in a browser.
-
-Notes:
- - Uses JSZip (client-side) to read zip without uploading anywhere.
- - Parsing aims to be robust to common WhatsApp export formats like:
-    [20/12/23, 9:22:29 PM] Name: message
-    20/12/23, 21:22 - Name: message
- - Attachment markers like "<attached: filename.jpg>" are resolved to files inside the zip.
-
--->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>WhatsApp Chat Viewer (Client-side)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-+6YbN6t2k8wS3V3XG8u6wq3F3tqJ03xI+c4p9wqF6b9p7wQm0q3qf2bP1zFqG8z9k1xqG1b2x5c3d4e6f7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <style>
-    :root{--bg:#0f1720;--card:#0b1320;--muted:#9aa4b2;--accent:#6ee7b7}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
-    body{background:linear-gradient(180deg,#071021 0%, #081827 100%);color:#e6eef6;padding:18px}
-    .container{max-width:1100px;margin:0 auto}
-    header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
-    .logo{width:48px;height:48px;background:linear-gradient(135deg,#72e0b6,#6b8bf3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#012}
-    h1{font-size:20px;margin:0}
-    .controls{display:flex;gap:8px;align-items:center;margin-left:auto}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:12px}
-    input[type=file]{display:block}
-    .meta{color:var(--muted);font-size:13px}
-    #messages{margin-top:14px}
-    .message{display:flex;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px}
-    .avatar{width:40px;height:40px;border-radius:50%;background:#133243;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent);flex-shrink:0}
-    .bubble{background:rgba(255,255,255,0.03);padding:8px;border-radius:8px;max-width:78%}
-    .metaRow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-    .sender{font-weight:700}
-    .time{color:var(--muted);font-size:12px}
-    img.attachment{max-width:320px;border-radius:6px;margin-top:6px;display:block}
-    video{max-width:420px;margin-top:6px;border-radius:6px}
-    .toolbar{display:flex;gap:8px;margin-bottom:10px}
-    .search{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
-    .small{font-size:13px;color:var(--muted)}
-    .attachment-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-    .att-thumb{width:110px;height:80px;background:#06101a;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-    a.btn{background:#0f1724;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);color:inherit;text-decoration:none}
-    footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
-    @media (max-width:700px){.avatar{display:none}.bubble{max-width:100%}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Chat Viewer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #e5ddd5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        #dropzone {
+            padding: 40px;
+            text-align: center;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin: 20px;
+            cursor: pointer;
+            background-color: #fafafa;
+        }
+        #dropzone:hover {
+            background-color: #f0f0f0;
+        }
+        #fileInput {
+            display: none;
+        }
+
+        #controls {
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+            background: #f5f5f5;
+            text-align: center;
+        }
+
+        #controls label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        #chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAFQTFRFAAAA9ubYyAAAAAFiS0dEAIgFHUgAAAAJcEhZcwAAAEgAAABIAEbJazYAAABGSURBVHic7cEBCQAACAOw/V/LgwwsQQgBvLp1cZtQ5fRShSIdUKQjFClHpIRIKZFSImVECqVERAlRRIiIECHyL40BAAD//wMA+gAq13kG3wAAAABJRU5ErkJggg==');
+            background-color: #E5DDD5;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+        }
+
+        .message .author {
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+        }
+        
+        /* Assigning colors to users */
+        .message[data-author-id="0"] .author { color: #d9534f; }
+        .message[data-author-id="1"] .author { color: #5bc0de; }
+        .message[data-author-id="2"] .author { color: #5cb85c; }
+        .message[data-author-id="3"] .author { color: #f0ad4e; }
+        .message[data-author-id="4"] .author { color: #0275d8; }
+        .message[data-author-id="5"] .author { color: #6a1b9a; }
+        .message[data-author-id="6"] .author { color: #ad1457; }
+        .message[data-author-id="7"] .author { color: #d84315; }
+        /* Add more colors as needed */
+
+
+        .message.sent {
+            margin-left: auto;
+        }
+
+        .message.sent .message-bubble {
+            background-color: #dcf8c6;
+            border-top-right-radius: 8px;
+        }
+
+        .message.received {
+            margin-right: auto;
+        }
+
+        .message.received .message-bubble {
+            background-color: #ffffff;
+            border-top-left-radius: 8px;
+        }
+
+        .message.system {
+            width: 100%;
+            text-align: center;
+            margin: 10px 0;
+            justify-content: center;
+        }
+
+        .message.system .message-bubble {
+            background-color: #e1f2fb;
+            color: #555;
+            font-size: 0.9em;
+            padding: 5px 12px;
+            max-width: 90%;
+        }
+
+        .timestamp {
+            font-size: 0.75em;
+            color: #999;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .message.sent .timestamp {
+            text-align: right;
+        }
+
+        .message.received .timestamp {
+            text-align: right;
+        }
+
+        .message.system .timestamp {
+            display: none; /* System messages already have time in them */
+        }
+        
+        .media-attachment {
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        .media-attachment img,
+        .media-attachment video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+        
+        .file-attachment {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 5px;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .file-attachment:hover {
+            background-color: #eee;
+        }
+        
+        .file-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .file-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .file-name {
+            font-weight: bold;
+        }
+        
+        .file-size {
+            font-size: 0.8em;
+            color: #777;
+        }
+
+        #loader {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #888;
+        }
+        
+        #status-bar {
+            padding: 8px 12px;
+            background-color: #075E54;
+            color: white;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        
+        #progress-container {
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: none; /* Hidden by default */
+        }
+        
+        #progress-bar {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            border: none;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #progress-bar::-webkit-progress-bar {
+            background-color: #eee;
+        }
+        
+        #progress-bar::-webkit-progress-value {
+            background-color: #075E54;
+        }
+        
+        #progress-bar::-moz-progress-bar {
+            background-color: #075E54;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">WA</div>
-      <div>
-        <h1>WhatsApp Chat Viewer (client-side)</h1>
-        <div class="meta">Upload a ZIP containing <code>_chat.txt</code> and attachments (same folder)</div>
-      </div>
 
-      <div class="controls">
-        <label class="btn">Choose ZIP <input id="zipfile" type="file" accept=".zip" style="display:none"></label>
-        <button id="openZip" class="btn">Open ZIP</button>
-        <button id="downloadJson" class="btn" title="Download parsed JSON">Export JSON</button>
-      </div>
-    </header>
+    <div id="container">
+        
+        <div id="controls">
+            <label for="fileInput">Select your exported WhatsApp .zip file:</label>
+            <input type="file" id="fileInput" accept=".zip" />
+            <button onclick="document.getElementById('fileInput').click()">Browse</button>
+        </div>
 
-    <div class="card">
-      <div class="toolbar">
-        <input id="search" class="search" placeholder="Search messages or sender" />
-        <select id="senderFilter" class="search"><option value="">All senders</option></select>
-        <input id="dateFrom" type="date" class="search" />
-        <input id="dateTo" type="date" class="search" />
-        <button id="clearFilters" class="btn">Clear</button>
-      </div>
+        <div id="progress-container">
+            <progress id="progress-bar" value="0" max="100"></progress>
+        </div>
 
-      <div id="messages" aria-live="polite">Drop a ZIP or click Open ZIP to start.</div>
+        <div id="chat-window">
+            <div id="dropzone">
+                <p>Drag & Drop your WhatsApp .zip file here or use the "Browse" button.</p>
+                <p style="font-size: 0.8em; color: #777;">(Everything is processed 100% in your browser. Nothing is uploaded.)</p>
+            </div>
+        </div>
+
+        <div id="status-bar">Ready</div>
     </div>
 
-    <footer>Pure client-side — nothing is uploaded.</footer>
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/unzipit@1.4.3/dist/unzipit.min.js"></script>
+    
+    <script>
+        // --- Constants and State ---
+        const BATCH_SIZE = 50; // Number of messages to render at a time
+        let allMessages = [];
+        let zipFileEntries = {};
+        let userColors = new Map();
+        let colorIndex = 0;
+        let renderedMessagesCount = 0;
+        let intersectionObserver;
 
-<script>
-// Robust WhatsApp chat parser + renderer
-// Author: ChatGPT (adapt and extend as needed)
+        // --- DOM Elements ---
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropzone');
+        const chatWindow = document.getElementById('chat-window');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const statusBar = document.getElementById('status-bar');
 
-const zipInput = document.getElementById('zipfile');
-const openBtn = document.getElementById('openZip');
-const messagesEl = document.getElementById('messages');
-const searchEl = document.getElementById('search');
-const senderFilter = document.getElementById('senderFilter');
-const dateFrom = document.getElementById('dateFrom');
-const dateTo = document.getElementById('dateTo');
-const clearFilters = document.getElementById('clearFilters');
-const downloadJson = document.getElementById('downloadJson');
+        // --- Event Listeners ---
+        fileInput.addEventListener('change', handleFileSelect);
+        dropZone.addEventListener('dragover', handleDragOver);
+        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('drop', handleFileSelect);
 
-let currentZipFile = null;
-let parsed = {messages:[], attachments:{}};
+        // --- Functions ---
 
-openBtn.addEventListener('click', ()=> zipInput.click());
-zipInput.addEventListener('change', (e)=>{ currentZipFile = e.target.files[0]; loadZip(); });
+        /**
+         * Handles file selection from either drag-and-drop or file input.
+         */
+        async function handleFileSelect(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            dropZone.style.display = 'none';
+            progressContainer.style.display = 'block';
+            statusBar.textContent = 'Processing...';
 
-searchEl.addEventListener('input', renderFiltered);
-senderFilter.addEventListener('change', renderFiltered);
-dateFrom.addEventListener('change', renderFiltered);
-dateTo.addEventListener('change', renderFiltered);
-clearFilters.addEventListener('click', ()=>{searchEl.value='';senderFilter.value='';dateFrom.value='';dateTo.value='';renderMessages(parsed.messages)});
+            const file = event.dataTransfer ? event.dataTransfer.files[0] : event.target.files[0];
 
-downloadJson.addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(parsed, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='chat_export.json'; document.body.appendChild(a); a.click(); a.remove();
-});
+            if (!file || !file.name.endsWith('.zip')) {
+                updateStatus('Error: Please select a .zip file.', true);
+                resetUI();
+                return;
+            }
 
-async function loadZip(){
-  if(!currentZipFile) return;
-  messagesEl.innerHTML = '<div class="small">Reading zip...</div>';
-  const arrayBuffer = await currentZipFile.arrayBuffer();
-  const jszip = new JSZip();
-  const zip = await jszip.loadAsync(arrayBuffer);
+            try {
+                updateStatus('Unzipping file... (This may take a moment for large files)');
+                
+                // Use unzipit to read the zip file
+                const { entries } = await unzipit.unzip(file, {
+                    onprogress: (event) => {
+                        const percent = (event.loaded / event.total) * 100;
+                        progressBar.value = percent;
+                    }
+                });
+                
+                zipFileEntries = entries;
+                
+                const chatFileName = Object.keys(zipFileEntries).find(name => name.endsWith('_chat.txt'));
+                
+                if (!chatFileName) {
+                    throw new Error('Could not find _chat.txt in the zip file.');
+                }
 
-  // find _chat.txt (sometimes WhatsApp names can be 'chat.txt' or 'WhatsApp Chat with X.txt')
-  const possibleNames = Object.keys(zip.files);
-  let chatFileName = possibleNames.find(n => n.toLowerCase().includes('_chat.txt'))
-                  || possibleNames.find(n => n.toLowerCase().endsWith('.txt') && n.toLowerCase().includes('chat'))
-                  || possibleNames.find(n => n.toLowerCase().endsWith('.txt'));
-  if(!chatFileName){ messagesEl.innerHTML = '<div class="small">No .txt chat file found in zip.</div>'; return; }
+                updateStatus('Parsing chat file...');
+                const chatText = await zipFileEntries[chatFileName].text();
+                
+                allMessages = parseChatText(chatText);
+                
+                // Clear chat window for new content
+                chatWindow.innerHTML = ''; 
+                
+                // Reset rendering state
+                renderedMessagesCount = 0;
+                userColors.clear();
+                colorIndex = 0;
+                
+                // Add a "loader" element at the top for infinite scroll
+                const topLoader = document.createElement('div');
+                topLoader.id = 'top-loader';
+                chatWindow.appendChild(topLoader);
 
-  const chatText = await zip.file(chatFileName).async('string');
+                // Initial render of the *last* messages
+                renderMoreMessages(true); 
+                
+                // Set up intersection observer to load more when scrolling to top
+                setupIntersectionObserver();
+                
+                updateStatus(`Loaded ${allMessages.length} messages.`);
 
-  // load attachments map
-  const attachments = {};
-  for(const name of possibleNames){
-    if(name === chatFileName) continue;
-    // store file objects
-    attachments[name.split('/').pop()] = zip.file(name);
-  }
+            } catch (err) {
+                console.error('Error processing file:', err);
+                updateStatus(`Error: ${err.message}`, true);
+                resetUI();
+            } finally {
+                progressContainer.style.display = 'none';
+            }
+        }
 
-  parsed = parseChat(chatText, attachments);
-  parsed.attachments = Object.keys(attachments);
-  // keep zip object for serving blobs
-  parsed._zip = zip;
-  renderMessages(parsed.messages);
-  populateSenderFilter(parsed.messages);
-}
+        /**
+         * Parses the raw text content of _chat.txt into a structured array.
+         */
+        function parseChatText(text) {
+            const lines = text.split('\n');
+            const messages = [];
+            // Regex to match the start of a new message line
+            // [DD/MM/YY, HH:MM:SS] Author: Message
+            const messageStartRegex = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}), (\d{1,2}:\d{2}:\d{2}\s[APM]{2})\] (.*?): ([\s\S]*)/;
+            // Regex for system messages (e.g., "You joined", "X changed the group icon")
+            const systemMessageRegex = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}), (\d{1,2}:\d{2}:\d{2}\s[APM]{2})\] ([\s\S]+?)(?=^\[\d{1,2}\/\d{1,2}\/\d{2,4},|\z)/m;
 
-function parseChat(text, attachments){
-  // Normalize CRLF
-  text = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  const lines = text.split('\n');
-  const messages = [];
+            let currentMessage = null;
 
-  // Regex patterns for different WhatsApp formats
-  const patterns = [
-    // [20/12/23, 9:22:29 PM] Name: message
-    /^\[(?<date>\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(?<time>[^\]]+)\]\s*(?<sender>[^:]+):\s*(?<msg>.*)$/,
-    // 20/12/23, 21:22 - Name: message
-    /^(?<date>\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(?<time>\d{1,2}:\d{2})(?:\s*[APMapm\.]{0,4})?\s*-\s*(?<sender>[^:]+):\s*(?<msg>.*)$/,
-    // 20/12/23, 9:22 - Name: message (alternate)
-    /^(?<date>\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(?<sender>[^:]+):\s*(?<msg>.*)$/,
-  ];
+            for (const line of lines) {
+                const match = line.match(messageStartRegex);
 
-  let current = null;
-  for(let line of lines){
-    if(!line.trim()) continue;
-    let matched = null;
-    for(const p of patterns){
-      const m = line.match(p);
-      if(m){ matched = m; break; }
-    }
-    if(matched && matched.groups){
-      // push previous
-      if(current) messages.push(current);
-      const d = matched.groups.date.trim();
-      const t = matched.groups.time? matched.groups.time.trim() : '';
-      const sender = matched.groups.sender ? matched.groups.sender.trim() : 'Unknown';
-      const msg = matched.groups.msg || '';
-      const dt = parseDateTime(d, t);
+                if (match) {
+                    // This is a new message line
+                    if (currentMessage) {
+                        messages.push(currentMessage); // Save the previous message
+                    }
+                    
+                    const [_, date, time, author, message] = match;
+                    
+                    if (author === 'You') {
+                        // Let's handle "You" specifically for styling
+                         currentMessage = {
+                            date,
+                            time,
+                            author: "You",
+                            message: message.trim(),
+                            type: 'user'
+                        };
+                    } else if (message.includes('<attached:')) {
+                         // This is a media message
+                         currentMessage = {
+                            date,
+                            time,
+                            author,
+                            message: message.trim(),
+                            type: 'media'
+                        };
+                    } else {
+                        // Standard text message
+                        currentMessage = {
+                            date,
+                            time,
+                            author,
+                            message: message.trim(),
+                            type: 'text'
+                        };
+                    }
+                } else if (line.match(systemMessageRegex) && !currentMessage) {
+                    // This is a system message (like "User joined")
+                     messages.push({
+                        date: '', // System messages might not always have a sender, but we'll parse time from context
+                        time: '',
+                        author: 'System',
+                        message: line.trim(),
+                        type: 'system'
+                    });
+                    currentMessage = null; // Reset current message
+                }
+                 else if (currentMessage) {
+                    // This is a continuation of the previous message (multi-line)
+                    currentMessage.message += '\n' + line.trim();
+                }
+            }
 
-      current = {dateRaw:d, timeRaw:t, datetime: dt, sender, text: msg, attachments: []};
-      // extract attachment markers in message
-      extractAttachedFiles(current, attachments);
-    } else {
-      // continuation line of previous message
-      if(current) {
-        current.text += '\n' + line;
-        extractAttachedFiles(current, attachments);
-      } else {
-        // stray line - create a message
-        current = {dateRaw:null, timeRaw:null, datetime:null, sender:'Unknown', text:line, attachments:[]};
-        extractAttachedFiles(current, attachments);
-      }
-    }
-  }
-  if(current) messages.push(current);
+            // Push the last message
+            if (currentMessage) {
+                messages.push(currentMessage);
+            }
 
-  // sort by datetime if present
-  messages.sort((a,b)=>{
-    if(a.datetime && b.datetime) return a.datetime - b.datetime;
-    return 0;
-  });
+            return messages;
+        }
 
-  return {messages};
-}
+        /**
+         * Renders the next batch of messages.
+         * @param {boolean} initialLoad - If true, scroll to the bottom after loading.
+         */
+        function renderMoreMessages(initialLoad = false) {
+            updateStatus(`Rendering messages ${renderedMessagesCount} to ${Math.min(renderedMessagesCount + BATCH_SIZE, allMessages.length)}...`);
 
-function extractAttachedFiles(msgObj, attachmentsMap){
-  // Look for patterns like <attached: filename.jpg> or <attached: 00001-PHOTO-...jpg>
-  const attRegex = /<attached:\s*([^>]+)>/gi;
-  let m;
-  while((m = attRegex.exec(msgObj.text)) !== null){
-    const fname = m[1].trim();
-    msgObj.attachments.push(fname);
-  }
-  // also look for filenames present alone on line
-  const fileInline = msgObj.text.match(/([\w\-]+\.(?:jpg|jpeg|png|gif|mp4|mov|pdf|heic|webp))/gi);
-  if(fileInline){
-    fileInline.forEach(f=>{ if(!msgObj.attachments.includes(f)) msgObj.attachments.push(f); });
-  }
-}
+            const fragment = document.createDocumentFragment();
+            const startIndex = Math.max(0, allMessages.length - renderedMessagesCount - BATCH_SIZE);
+            const endIndex = allMessages.length - renderedMessagesCount;
 
-function parseDateTime(dateStr, timeStr){
-  // Try multiple formats. WhatsApp dates often dd/MM/yy or dd/MM/yyyy
-  try{
-    // normalize separators
-    const parts = dateStr.split('/').map(s=>s.trim());
-    if(parts.length>=3){
-      let day=parts[0], month=parts[1], year=parts[2];
-      if(year.length===2) year = '20'+year;
-      let time = timeStr || '00:00';
-      // remove AM/PM if present
-      const ampmMatch = time.match(/(AM|PM|am|pm)/);
-      let dateIso = `${year.padStart(4,'0')}-${month.padStart(2,'0')}-${day.padStart(2,'0')}T`;
-      // try to normalize time
-      let t = time.replace(/\s*[APMapm\.]{1,4}/g,'').trim();
-      if(!t) t='00:00';
-      // if time has seconds keep it
-      if(!t.includes(':')) t = t + ':00';
-      dateIso += t;
-      let dt = new Date(dateIso);
-      if(ampmMatch){
-        // handle AM/PM manually if needed
-        const ampm = ampmMatch[0].toLowerCase();
-        let hh = parseInt(t.split(':')[0],10);
-        if(ampm==='pm' && hh<12) hh+=12;
-        if(ampm==='am' && hh===12) hh=0;
-        const mm = parseInt(t.split(':')[1]||'0',10);
-        dt = new Date(parseInt(year,10), parseInt(month,10)-1, parseInt(day,10), hh, mm);
-      }
-      return dt;
-    }
-  }catch(e){ }
-  return null;
-}
+            // Stop observing while we add new elements
+            if (intersectionObserver) intersectionObserver.disconnect();
 
-function renderMessages(messages){
-  if(!messages || messages.length===0){ messagesEl.innerHTML = '<div class="small">No messages parsed.</div>'; return; }
-  messagesEl.innerHTML = '';
-  for(const m of messages){
-    const el = renderMessage(m);
-    messagesEl.appendChild(el);
-  }
-}
+            for (let i = startIndex; i < endIndex; i++) {
+                const messageData = allMessages[i];
+                const messageEl = createMessageElement(messageData);
+                fragment.appendChild(messageEl);
+            }
 
-function renderMessage(m){
-  const wrapper = document.createElement('div'); wrapper.className='message';
-  const avatar = document.createElement('div'); avatar.className='avatar'; avatar.textContent = initials(m.sender || 'U');
-  const bubble = document.createElement('div'); bubble.className='bubble';
-  const metaRow = document.createElement('div'); metaRow.className='metaRow';
-  const sender = document.createElement('div'); sender.className='sender'; sender.textContent = m.sender || 'Unknown';
-  const time = document.createElement('div'); time.className='time'; time.textContent = m.datetime? formatDate(m.datetime) : (m.dateRaw||'');
-  metaRow.appendChild(sender); metaRow.appendChild(time);
-  bubble.appendChild(metaRow);
+            const topLoader = document.getElementById('top-loader');
+            chatWindow.insertBefore(fragment, topLoader.nextSibling); // Insert before the loader
+            
+            renderedMessagesCount += (endIndex - startIndex);
 
-  const textEl = document.createElement('div'); textEl.innerHTML = linkify(escapeHtml(m.text || ''));
-  bubble.appendChild(textEl);
+            if (initialLoad) {
+                // Scroll to the bottom on the very first load
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            } else {
+                // Keep scroll position stable when loading older messages
+                const firstNewMessage = chatWindow.children[1]; // [0] is the loader
+                if (firstNewMessage) {
+                    firstNewMessage.scrollIntoView();
+                }
+            }
 
-  // attachments
-  if(m.attachments && m.attachments.length){
-    const attWrap = document.createElement('div'); attWrap.className='attachment-list';
-    for(const fname of m.attachments){
-      const aEl = makeAttachmentElement(fname);
-      attWrap.appendChild(aEl);
-    }
-    bubble.appendChild(attWrap);
-  }
+            // Re-observe the loader if there are more messages
+            if (renderedMessagesCount < allMessages.length) {
+                if (intersectionObserver) {
+                    intersectionObserver.observe(topLoader);
+                }
+            } else {
+                topLoader.style.display = 'none'; // No more messages to load
+                updateStatus(`All ${allMessages.length} messages loaded.`);
+            }
+        }
+        
+        /**
+         * Sets up the IntersectionObserver to trigger loading more messages
+         * when the top of the chat window is reached.
+         */
+        function setupIntersectionObserver() {
+            const options = {
+                root: chatWindow,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
 
-  wrapper.appendChild(avatar); wrapper.appendChild(bubble);
-  return wrapper;
-}
+            intersectionObserver = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    // Load more messages when the top loader becomes visible
+                    renderMoreMessages();
+                }
+            }, options);
 
-function makeAttachmentElement(fname){
-  const div = document.createElement('div');
-  const lc = fname.toLowerCase();
-  const link = document.createElement('a'); link.className='att-thumb';
-  // If file present in zip, create blob URL
-  let fileEntry = null;
-  if(parsed._zip){
-    // try exact name; also try stripping folders
-    fileEntry = parsed._zip.file(fname) || parsed._zip.file('./'+fname) || parsed._zip.file(Object.keys(parsed._zip.files).find(k=>k.endsWith('/'+fname))) || parsed._zip.file(Object.keys(parsed._zip.files).find(k=>k.endsWith(fname)));
-  }
+            const topLoader = document.getElementById('top-loader');
+            if (topLoader) {
+                intersectionObserver.observe(topLoader);
+            }
+        }
 
-  if(lc.match(/\.(jpe?g|png|gif|webp|heic)$/)){
-    if(fileEntry) fileEntry.async('blob').then(b=>{ link.href = URL.createObjectURL(b); link.target='_blank'; const img = document.createElement('img'); img.className='attachment'; img.src = link.href; link.appendChild(img); });
-    else{ link.textContent = fname; link.href='#'; }
-  } else if(lc.match(/\.(mp4|mov|webm|mkv)$/)){
-    if(fileEntry) fileEntry.async('blob').then(b=>{ const url = URL.createObjectURL(b); const v = document.createElement('video'); v.controls=true; v.src=url; v.setAttribute('playsinline',''); v.style.maxWidth='320px'; div.appendChild(v); });
-    else{ link.textContent = fname; }
-  } else if(lc.match(/\.pdf$/)){
-    if(fileEntry) fileEntry.async('blob').then(b=>{ const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href=url; a.target='_blank'; a.textContent = fname; a.className='btn'; div.appendChild(a); });
-    else{ link.textContent = fname; }
-  } else {
-    // generic download link
-    if(fileEntry) fileEntry.async('blob').then(b=>{ const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href=url; a.textContent = fname; a.download = fname; a.className='btn'; div.appendChild(a); });
-    else{ link.textContent = fname; }
-  }
-  if(link.childNodes.length===0) link.appendChild(document.createTextNode(fname));
-  div.appendChild(link);
-  return div;
-}
+        /**
+         * Creates a single message element for the chat window.
+         */
+        function createMessageElement(messageData) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
 
-function initials(name){
-  if(!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  return (parts[0][0] || 'U') + (parts[1] ? parts[1][0] : '');
-}
+            const bubbleEl = document.createElement('div');
+            bubbleEl.classList.add('message-bubble');
 
-function formatDate(d){
-  // return readable date-time
-  try{
-    return d.toLocaleString();
-  }catch(e){ return String(d); }
-}
+            if (messageData.type === 'system') {
+                messageEl.classList.add('system');
+                bubbleEl.textContent = messageData.message;
+            } else {
+                // Assign a color ID to the author
+                if (!userColors.has(messageData.author)) {
+                    userColors.set(messageData.author, colorIndex++);
+                }
+                const authorId = userColors.get(messageData.author);
+                messageEl.setAttribute('data-author-id', authorId % 8); // Cycle through 8 colors
 
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function linkify(s){
-  // simple URL linkify
-  return s.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>').replace(/www\.[^\s]+/g, (m)=>'<a href="https://'+m+'" target="_blank">'+m+'</a>');
-}
+                // Style for sent vs. received
+                if (messageData.author === 'You') {
+                    messageEl.classList.add('sent');
+                } else {
+                    messageEl.classList.add('received');
+                    const authorEl = document.createElement('div');
+                    authorEl.classList.add('author');
+                    authorEl.textContent = messageData.author;
+                    bubbleEl.appendChild(authorEl);
+                }
 
-function populateSenderFilter(messages){
-  const senders = Array.from(new Set(messages.map(m=>m.sender))).sort();
-  senderFilter.innerHTML = '<option value="">All senders</option>' + senders.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-}
+                // Handle message content (text vs. media)
+                const contentEl = document.createElement('div');
+                contentEl.classList.add('message-content');
+                
+                const mediaMatch = messageData.message.match(/<attached: (.+?)>/);
+                
+                if (mediaMatch) {
+                    const fileName = mediaMatch[1];
+                    const entry = findFileInZip(fileName);
+                    
+                    if (entry) {
+                        contentEl.appendChild(createMediaElement(entry, fileName));
+                    } else {
+                        contentEl.textContent = `[Media omitted: ${fileName}]`;
+                    }
+                } else {
+                    // Simple text message
+                    contentEl.textContent = messageData.message;
+                }
+                
+                bubbleEl.appendChild(contentEl);
 
-function renderFiltered(){
-  const q = searchEl.value.toLowerCase();
-  const sender = senderFilter.value;
-  const from = dateFrom.value ? new Date(dateFrom.value) : null;
-  const to = dateTo.value ? new Date(dateTo.value) : null;
-  const filtered = parsed.messages.filter(m=>{
-    if(sender && m.sender!==sender) return false;
-    if(q){ if(!( (m.text||'').toLowerCase().includes(q) || (m.sender||'').toLowerCase().includes(q) || (m.attachments||[]).join(' ').toLowerCase().includes(q) )) return false; }
-    if(from && m.datetime){ if(m.datetime < from) return false; }
-    if(to && m.datetime){ // include the whole day
-      const dayEnd = new Date(to); dayEnd.setDate(dayEnd.getDate()+1);
-      if(m.datetime >= dayEnd) return false;
-    }
-    return true;
-  });
-  renderMessages(filtered);
-}
+                // Add timestamp
+                const timeEl = document.createElement('div');
+                timeEl.classList.add('timestamp');
+                timeEl.textContent = `${messageData.date}, ${messageData.time}`;
+                bubbleEl.appendChild(timeEl);
+            }
 
-// allow drop
-window.addEventListener('dragover', e=>{ e.preventDefault(); });
-window.addEventListener('drop', async (e)=>{ e.preventDefault(); const f = e.dataTransfer.files[0]; if(f && f.name.toLowerCase().endsWith('.zip')){ currentZipFile = f; await loadZip(); }});
+            messageEl.appendChild(bubbleEl);
+            return messageEl;
+        }
 
-</script>
+        /**
+         * Creates an <img>, <video>, or <a> element for an attachment.
+         */
+        function createMediaElement(entry, fileName) {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('media-attachment');
+            
+            const fileType = entry.contentType || 'application/octet-stream';
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+            
+            // Create a blob URL. This is memory-efficient as it doesn't load
+            // the whole file into a data-uri.
+            const blobUrl = URL.createObjectURL(new Blob([entry.getUint8Array()], { type: fileType }));
+            
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
+                const img = document.createElement('img');
+                img.src = blobUrl;
+                img.alt = fileName;
+                img.loading = 'lazy'; // Important for performance
+                wrapper.appendChild(img);
+            } else if (['mp4', 'webm', 'ogg'].includes(fileExtension)) {
+                const video = document.createElement('video');
+                video.src = blobUrl;
+                video.controls = true;
+                video.preload = 'metadata'; // Only load metadata until played
+                video.style.width = '100%';
+                wrapper.appendChild(video);
+            } else {
+                // Fallback for other files (PDF, DOCX, etc.)
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName;
+                link.classList.add('file-attachment');
+                
+                let icon = '📄'; // Default icon
+                if (fileExtension === 'pdf') icon = 'PDF';
+                if (fileExtension === 'zip') icon = '📦';
+                if (['doc', 'docx'].includes(fileExtension)) icon = 'DOC';
+                
+                link.innerHTML = `
+                    <span class="file-icon">${icon}</span>
+                    <div class="file-info">
+                        <span class="file-name">${fileName}</span>
+                        <span class="file-size">${formatBytes(entry.size)}</span>
+                    </div>
+                `;
+                wrapper.appendChild(link);
+            }
+            
+            return wrapper;
+        }
+
+        /**
+         * Helper to find a file in the zip entries, ignoring path prefixes
+         * that WhatsApp sometimes adds (like "WhatsApp Images/").
+         */
+        function findFileInZip(fileName) {
+            if (zipFileEntries[fileName]) {
+                return zipFileEntries[fileName];
+            }
+            // Try finding just by the basename
+            const simpleName = fileName.split('/').pop();
+            return Object.values(zipFileEntries).find(entry => entry.name.endsWith(simpleName));
+        }
+
+        /**
+         * Utility function to format file sizes.
+         */
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        /**
+         * Updates the status bar text.
+         */
+        function updateStatus(message, isError = false) {
+            statusBar.textContent = message;
+            statusBar.style.backgroundColor = isError ? '#d9534f' : '#075E54';
+        }
+
+        /**
+         * Resets the UI to the initial state.
+         */
+        function resetUI() {
+            progressContainer.style.display = 'none';
+            progressBar.value = 0;
+            chatWindow.innerHTML = '';
+            chatWindow.appendChild(dropZone);
+            dropZone.style.display = 'block';
+            allMessages = [];
+            zipFileEntries = {};
+            renderedMessagesCount = 0;
+        }
+        
+        /**
+         * Drag and drop handlers for the drop zone.
+         */
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            dropZone.style.backgroundColor = '#e0e0e0';
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            dropZone.style.backgroundColor = '#fafafa';
+        }
+    </script>
 </body>
 </html>
