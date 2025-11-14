@@ -84,6 +84,7 @@
             display: flex;
             flex-direction: column;
             background-color: var(--header-bg-color);
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
         }
 
         #chat-list-header {
@@ -228,7 +229,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            min-width: 0; /* <-- FIX: Prevents this panel from expanding and pushing sidebar off-screen */
+            min-width: 0; /* <-- FIX: Prevents this panel from expanding */
         }
 
         #welcome-screen {
@@ -363,7 +364,7 @@
         }
         
         .dark-mode #chat-window {
-             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAlQTFRF////AAAAVgEAlgAAAAF0Uk5TAEDm2GYAAABESURBVO3BAQEAAAiAMP83/1AE/wFwEgEINCIg0IiAQCMCIAECAQECAgECAQECAQECAQECAQECAQECAQECAgECAgEBAYg3AgQeHgHwAAAAAElFTkSuQmCC');
+             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAlQTFRF////AAAAVgEAlgAAAAF0Uk5TAEDm2GYAAABESURBVO3BAQEAAAiAMP83/1AE/wFwEgEINCIg0IiAQCMCIAECAQECAgECAQECAQECAQECAQECAQECAQECAgECAgEBAYg3AgQeHgHwAAAAAElFTSuQmCC');
         }
         .light-mode #chat-window {
             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAMAAAC5zwKfAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAFQTFRFAAAA9ubYyAAAAAFiS0dEAIgFHUgAAAAJcEhZcwAAAEgAAABIAEbJazYAAABGSURBVHic7cEBCQAACAOw/V/LgwwsQQgBvLp1cZtQ5fRShSIdUKQjFClHpIRIKZFSImVECqVERAlRRIiIECHyL40BAAD//wMA+gAq13kG3wAAAABJRU5ErkJggg==');
@@ -465,7 +466,7 @@
         .media-attachment img,
         .media-attachment video {
             max-width: 100%;       /* Will not overflow bubble */
-            max-height: 400px;     /* *** ADDED THIS LINE *** */
+            max-height: 400px;     /* Set a max-height for chat view */
             width: auto;           /* Maintain aspect ratio */
             height: auto;          /* Maintain aspect ratio */
             object-fit: contain;   /* Fit within bounds without stretch */
@@ -561,13 +562,13 @@
             cursor: pointer;
             overflow: hidden;
             border-radius: 8px;
-            aspect-ratio: 1 / 1; /* *** ADDED THIS LINE *** */
+            aspect-ratio: 1 / 1; /* Makes items square */
             background-color: var(--header-bg-color);
         }
         .gallery-item img, .gallery-item video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* *** CHANGED: from 'contain' to 'cover' for a uniform grid */
+            object-fit: cover; /* Fills the square, cropping if necessary */
         }
         
         /* Lightbox Modal */
@@ -1165,6 +1166,11 @@
                  return;
             }
             
+            // Revoke any blob URLs this session was using
+            if (session.mediaCache) {
+                session.mediaCache.forEach(url => URL.revokeObjectURL(url));
+            }
+            
             chatSessions.delete(chatId);
             
             renderChatList();
@@ -1199,6 +1205,13 @@
                 return;
             }
             
+            // Revoke all blob URLs from all sessions
+            chatSessions.forEach(session => {
+                if (session.mediaCache) {
+                    session.mediaCache.forEach(url => URL.revokeObjectURL(url));
+                }
+            });
+            
             localStorage.removeItem('lastActiveChatId');
             chatSessions.clear();
             activeChatId = null;
@@ -1208,12 +1221,16 @@
             updateStatus('All chats cleared.');
         }
 
+        /**
+         * Enhanced parser to handle system messages and invisible characters.
+         */
         function parseChatText(text) {
             const lines = text.split('\n');
             const messages = [];
             const authors = new Set();
-            // Broader regex to catch different date/time formats e.g. [20/12/23, 9:22:29 PM] or [12/20/2023, 9:22 PM]
+            // Regex for user messages: [DATE, TIME] Author: Message
             const userMessageRegex = /^\[([\d./]+, \d{1,2}:\d{2}(?::\d{2})?\s?[AP]?M?)\] (.*?): ([\s\S]+)/;
+            // Regex for system messages: [DATE, TIME] Message (no author/colon)
             const systemMessageRegex = /^\[([\d./]+, \d{1,2}:\d{2}(?::\d{2})?\s?[AP]?M?)\] ([\s\S]+)/;
             
             let currentMessage = null;
@@ -1221,51 +1238,73 @@
             for (const line of lines) {
                 const userMatch = line.match(userMessageRegex);
                 
-                if (userMatch) {
+                if (userMatch) { // Line has format [time] author: message
                     if (currentMessage) messages.push(currentMessage);
-                    const [_, timestamp, author, message] = userMatch;
-                    const trimmedAuthor = author.trim();
-                    authors.add(trimmedAuthor); 
                     
-                    currentMessage = {
-                        timestamp: timestamp.trim(),
-                        isoDate: formatDateForISO(timestamp.split(',')[0].trim()),
-                        author: trimmedAuthor,
-                        message: message.trim(),
-                        type: message.includes('<attached:') ? 'media' : 'text'
-                    };
+                    const [_, timestamp, author, message] = userMatch;
+                    // *** FIX: Strip invisible characters from author and message
+                    const trimmedAuthor = author.trim().replace(/[\u200E\u200F]/g, '');
+                    const trimmedMessage = message.trim().replace(/[\u200E\u200F]/g, '');
+
+                    // Check if it's a system message masquerading as a user message
+                    const isSystemMessage = (
+                        trimmedMessage.includes(' created this group') ||
+                        trimmedMessage.includes(' added you') ||
+                        trimmedMessage.includes(' added ') ||
+                        trimmedMessage.includes(' left') ||
+                        trimmedMessage.includes(' removed ') ||
+                        trimmedMessage.includes(' changed this group\'s icon') ||
+                        trimmedMessage.includes(' changed the subject') ||
+                        trimmedMessage.includes(' changed this group\'s description') ||
+                        trimmedMessage.includes('g-to-end encryption is enabled') || 
+                        trimmedMessage.includes('end-to-end encrypted') ||
+                        trimmedMessage.includes(' changed their phone number') ||
+                        trimmedMessage.includes('You\'re now an admin') ||
+                        trimmedMessage.includes('You are now an admin') ||
+                        trimmedMessage.includes('This message was deleted') ||
+                        trimmedMessage.includes('You deleted this message')
+                    );
+
+                    if (isSystemMessage) {
+                        currentMessage = null; // System messages don't have continuations
+                        messages.push({
+                            timestamp: timestamp.trim(),
+                            isoDate: formatDateForISO(timestamp.split(',')[0].trim()),
+                            author: 'System',
+                            message: `${trimmedAuthor} ${trimmedMessage}`, // Re-combine for context
+                            type: 'system'
+                        });
+                    } else {
+                        // It's a real user message
+                        authors.add(trimmedAuthor); 
+                        currentMessage = {
+                            timestamp: timestamp.trim(),
+                            isoDate: formatDateForISO(timestamp.split(',')[0].trim()),
+                            author: trimmedAuthor,
+                            message: trimmedMessage, // Use the cleaned message
+                            type: trimmedMessage.includes('<attached:') ? 'media' : 'text'
+                        };
+                    }
                 } else {
                     const systemMatch = line.match(systemMessageRegex);
-                    if (systemMatch) {
+                    if (systemMatch) { // Line has format [time] message (no author:)
                         if (currentMessage) messages.push(currentMessage);
                         currentMessage = null; 
                         
                         const [_, timestamp, message] = systemMatch;
-                        
-                        // Check if it's a "user: message" format that was mis-parsed as system
-                        if (message.includes(': ') && !message.includes('changed') && !message.includes('added') && !message.includes('left') && !message.includes('created') && !message.includes('removed') && !message.includes('security code')) {
-                             const parts = message.split(/: (.+)/);
-                             const trimmedAuthor = parts[0].trim();
-                             authors.add(trimmedAuthor);
-                             currentMessage = {
-                                timestamp: `${date.trim()}, ${time.trim()}`,
-                                isoDate: formatDateForISO(date.trim()),
-                                author: trimmedAuthor,
-                                message: parts[1] ? parts[1].trim() : '',
-                                type: parts[1] && parts[1].includes('<attached:') ? 'media' : 'text'
-                            };
-                        } else {
-                            // It's a real system message
-                            messages.push({
-                                timestamp: `${date.trim()}, ${time.trim()}`,
-                                isoDate: formatDateForISO(date.trim()),
-                                author: 'System',
-                                message: message.trim(),
-                                type: 'system'
-                            });
-                        }
-                    } else if (currentMessage) {
-                        currentMessage.message += '\n' + line.trim();
+                        const trimmedMessage = message.trim().replace(/[\u200E\u200F]/g, ''); // *** FIX: Also clean true system messages
+
+                        messages.push({
+                            timestamp: timestamp.trim(),
+                            isoDate: formatDateForISO(timestamp.split(',')[0].trim()),
+                            author: 'System',
+                            message: trimmedMessage,
+                            type: 'system'
+                        });
+                    } else if (currentMessage && currentMessage.type !== 'media') {
+                        // This is a continuation line for the previous user message
+                        // Don't append to media messages
+                        currentMessage.message += '\n' + line;
                     }
                 }
             }
@@ -1364,7 +1403,12 @@
             } else {
                 const firstNewMessage = chatWindow.children[1]; 
                 if (firstNewMessage) {
+                    // This logic ensures the scroll doesn't jump
+                    const oldScrollTop = chatWindow.scrollTop;
+                    const oldScrollHeight = chatWindow.scrollHeight;
                     firstNewMessage.scrollIntoView({ block: 'start' });
+                    const newScrollHeight = chatWindow.scrollHeight;
+                    chatWindow.scrollTop = oldScrollTop + (newScrollHeight - oldScrollHeight);
                 }
             }
             
@@ -1402,7 +1446,7 @@
 
         async function createMessageElement(messageData) { 
             const session = getActiveSession();
-            if (!session) return document.createElement('div'); // Return empty div if session is gone
+            if (!session) return document.createElement('div'); 
             
             const messageEl = document.createElement('div');
             messageEl.classList.add('message');
@@ -1436,7 +1480,7 @@
                 }
                 const authorId = userColors.get(messageData.author);
                 messageEl.setAttribute('data-author-id', authorId % 8);
-
+                
                 if (messageData.author === session.selectedUser) {
                     messageEl.classList.add('sent');
                 } else {
@@ -1567,6 +1611,7 @@
         }
 
         function linkify(text, element) {
+            // Updated regex to be more robust
             const urlRegex = /(https?:\/\/[^\s"']+|www\.[^\s"']+)/g;
             let lastIndex = 0;
             let match;
@@ -1579,7 +1624,7 @@
                 }
                 const url = match[0];
                 const a = document.createElement('a');
-a.href = url.startsWith('www.') ? 'http://' + url : url;
+                a.href = url.startsWith('www.') ? 'http://' + url : url;
                 a.textContent = url;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
@@ -1682,10 +1727,12 @@ a.href = url.startsWith('www.') ? 'http://' + url : url;
                 byUser: new Map(),
                 media: 0,
                 deleted: 0,
+                system: 0,
             };
 
             for (const msg of session.allMessages) {
                 if (msg.type === 'system') {
+                    stats.system++;
                     if (msg.message.includes('deleted this message')) {
                         stats.deleted++;
                     }
@@ -1700,11 +1747,12 @@ a.href = url.startsWith('www.') ? 'http://' + url : url;
             }
 
             const sortedUsers = [...stats.byUser.entries()].sort((a, b) => b[1] - a[1]);
+            const totalUserMessages = session.allMessages.length - stats.system;
             
             let userListHTML = '<ul>';
             for (const [author, count] of sortedUsers) {
                 const displayName = session.isAnonymized ? session.authorNameMap.get(author) : author;
-                const percentage = ((count / (stats.total - stats.deleted)) * 100).toFixed(1);
+                const percentage = totalUserMessages > 0 ? ((count / totalUserMessages) * 100).toFixed(1) : 0;
                 userListHTML += `<li><strong>${displayName}:</strong> ${count} messages (${percentage}%)</li>`;
             }
             userListHTML += '</ul>';
@@ -1713,10 +1761,10 @@ a.href = url.startsWith('www.') ? 'http://' + url : url;
             statsContent.innerHTML = `
                 <h3>Stats for: ${session.name}</h3>
                 <ul>
-                    <li><strong>Total Messages:</strong> ${stats.total}</li>
-                    <li><strong>User Messages:</strong> ${session.allMessages.filter(m => m.type === 'text').length}</li>
+                    <li><strong>Total Messages (all types):</strong> ${stats.total}</li>
+                    <li><strong>User Messages:</strong> ${totalUserMessages}</li>
                     <li><strong>Media Messages:</strong> ${stats.media}</li>
-                    <li><strong>Deleted Messages:</strong> ${stats.deleted}</li>
+                    <li><strong>System Messages:</strong> ${stats.system} (includes ${stats.deleted} deleted)</li>
                     <li><strong>Total Participants:</strong> ${session.uniqueAuthors.size}</li>
                 </ul>
                 <h3>Messages by User</h3>
@@ -1802,90 +1850,100 @@ a.href = url.startsWith('www.') ? 'http://' + url : url;
             }
         }
 
-// --- Utility Functions ---
+        // --- Utility Functions ---
 
-/**
- * Updates the status bar text.
- */
-function updateStatus(message, isError = false) {
-    statusBar.textContent = message;
-    statusBar.style.backgroundColor = isError ? 'var(--danger-color)' : '#075E54';
-}
+        /**
+         * Updates the status bar text.
+         */
+        function updateStatus(message, isError = false) {
+            statusBar.textContent = message;
+            statusBar.style.backgroundColor = isError ? 'var(--danger-color)' : '#075E54';
+        }
 
-function findFileInZip(fileName, entries) {
-    if (!entries) return null; // Guard against un-loaded sessions
-    if (entries[fileName]) {
-        return entries[fileName];
-    }
-    const simpleName = fileName.split('/').pop();
-    const foundEntry = Object.values(entries).find(entry => entry.name.endsWith(simpleName));
-    return foundEntry;
-}
+        function findFileInZip(fileName, entries) {
+            if (!entries) return null; // Guard against un-loaded sessions
+            if (entries[fileName]) {
+                return entries[fileName];
+            }
+            const simpleName = fileName.split('/').pop();
+            const foundEntry = Object.values(entries).find(entry => entry.name.endsWith(simpleName));
+            return foundEntry;
+        }
+        
+        function formatDateForISO(dateStr) {
+            if (!dateStr) return null;
+            // Format: DD/MM/YY or DD/MM/YYYY or MM/DD/YYYY or M/D/YY etc.
+            // Handles . or / as separators
+            const parts = dateStr.replace(/\./g, '/').split('/');
+            if (parts.length !== 3) return null; 
 
-function formatDateForISO(dateStr) {
-    if (!dateStr) return null;
-    // Format: DD/MM/YY or DD/MM/YYYY or MM/DD/YYYY or M/D/YY etc.
-    // Handles . or / as separators
-    const parts = dateStr.replace(/\./g, '/').split('/');
-    if (parts.length !== 3) return null; // Invalid date format
+            let day, month, year;
+            
+            // Assume DD/MM/YY format first, as it's common in many parts of the world
+            if (parseInt(parts[1], 10) <= 12) {
+                 day = parts[0].padStart(2, '0');
+                 month = parts[1].padStart(2, '0');
+                 year = parts[2];
+            } else if (parseInt(parts[0], 10) <= 12) { // Assume MM/DD/YY if first part is a valid month and second isn't
+                 month = parts[0].padStart(2, '0');
+                 day = parts[1].padStart(2, '0');
+                 year = parts[2];
+            } else {
+                // Failsafe, default to DD/MM/YY
+                 day = parts[0].padStart(2, '0');
+                 month = parts[1].padStart(2, '0');
+                 year = parts[2];
+            }
 
-    let day, month, year;
-    
-    // Check for DD/MM/YY format (common outside US)
-    if (parseInt(parts[1], 10) > 12) { 
-        day = parts[0].padStart(2, '0');
-        month = parts[1].padStart(2, '0');
-        year = parts[2];
-    } 
-    // Check for MM/DD/YY format (common in US)
-    else if (parseInt(parts[0], 10) > 12) { 
-        month = parts[0].padStart(2, '0');
-        day = parts[1].padStart(2, '0');
-        year = parts[2];
-    } else {
-        // Ambiguous (e.g., 01/02/24). 
-        // WhatsApp default export is DD/MM/YY. We will assume this.
-        day = parts[0].padStart(2, '0');
-        month = parts[1].padStart(2, '0');
-        year = parts[2];
-    }
+            if (year.length === 2) year = '20' + year;
+            
+            // Final check to prevent invalid dates like 30/02/2024
+            const testDate = new Date(`${year}-${month}-${day}`);
+            if (isNaN(testDate.getTime())) {
+                // If invalid, try swapping day and month
+                if (parseInt(parts[0], 10) <= 12) {
+                     day = parts[1].padStart(2, '0');
+                     month = parts[0].padStart(2, '0');
+                     return `${year}-${month}-${day}`;
+                }
+                return null; // Can't parse
+            }
 
-    if (year.length === 2) year = '20' + year;
-    return `${year}-${month}-${day}`;
-}
+            return `${year}-${month}-${day}`;
+        }
 
 
-function formatBytes(bytes, decimals = 2) {
-    if (!bytes || bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
+        function formatBytes(bytes, decimals = 2) {
+            if (!bytes || bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+        
+        function getAvatarColor(str) {
+            const colors = ['#d9534f', '#5bc0de', '#5cb85c', '#f0ad4e', '#0275d8', '#6a1b9a', '#ad1457', '#d84315'];
+            let hash = 0;
+            if (!str || str.length === 0) return colors[0];
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+        
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            welcomeDropZone.style.backgroundColor = 'var(--active-bg)';
+        }
 
-function getAvatarColor(str) {
-    const colors = ['#d9534f', '#5bc0de', '#5cb85c', '#f0ad4e', '#0275d8', '#6a1b9a', '#ad1457', '#d84315'];
-    let hash = 0;
-    if (!str || str.length === 0) return colors[0];
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return colors[Math.abs(hash) % colors.length];
-}
-
-function handleDragOver(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    welcomeDropZone.style.backgroundColor = 'var(--active-bg)';
-}
-
-function handleDragLeave(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    welcomeDropZone.style.backgroundColor = 'var(--header-bg-color)';
-}
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            welcomeDropZone.style.backgroundColor = 'var(--header-bg-color)';
+        }
     </script>
 </body>
 </html>
