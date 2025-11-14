@@ -691,7 +691,8 @@
     </div>
     
     <script>
-        // --- State Management ---
+        // --- Constants and State ---
+        const BATCH_SIZE = 50; // <-- CORRECTED: Moved to global scope
         const chatSessions = new Map(); // In-memory cache for chat data
         let activeChatId = null;
         let renderedMessagesCount = 0;
@@ -768,19 +769,16 @@
                 contextMenu.style.display = 'none'; // Hide context menu on any click
             };
             
-            // Set theme from localStorage
+            // Set theme
             const savedTheme = localStorage.getItem('chatViewerTheme') || 'light';
             themeToggle.checked = (savedTheme === 'dark');
             toggleDarkMode();
 
-            // Initialize database and load existing chats
-            try {
-                await initializeDB();
-                await loadChatsFromDB();
-            } catch (error) {
-                console.error("Failed to initialize app:", error);
-                updateStatus("Error: Could not load data.", true);
-            }
+            // Initialize database
+            await initializeDB();
+            
+            // Load chats from DB
+            await loadChatsFromDB();
         }
 
         // --- Database Functions ---
@@ -792,10 +790,10 @@
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
                     if (!db.objectStoreNames.contains(STORE_FILES)) {
-                        db.createObjectStore(STORE_FILES); // Key: chatId (filename), Value: File Blob
+                        db.createObjectStore(STORE_FILES); // Key will be chatId
                     }
                     if (!db.objectStoreNames.contains(STORE_META)) {
-                        db.createObjectStore(STORE_META, { keyPath: 'id' }); // Key: chatId (filename), Value: Metadata object
+                        db.createObjectStore(STORE_META, { keyPath: 'id' });
                     }
                 };
                 
@@ -1065,7 +1063,7 @@
                 
                 item.innerHTML = `
                     <div class="chat-avatar" style="background-color: ${getAvatarColor(session.name)}">${displayInitial}</div>
-                    <div class.chat-details">
+                    <div class="chat-details"> 
                         <div class="chat-name-time">
                             <span class="chat-name">${displayName}</span>
                             <span class="chat-time">${session.lastMessageTimestamp}</span>
@@ -1310,9 +1308,11 @@
             const startIndex = Math.max(0, session.allMessages.length - renderedMessagesCount - BATCH_SIZE);
             const endIndex = session.allMessages.length - renderedMessagesCount;
             
-            if (startIndex === endIndex) {
-                document.getElementById('loader').style.display = 'none';
-                 updateStatus(`All ${session.allMessages.length} messages loaded.`);
+            const topLoader = document.getElementById('loader');
+            if (startIndex === endIndex && renderedMessagesCount > 0) {
+                if(topLoader) topLoader.style.display = 'none';
+                updateStatus(`All ${session.allMessages.length} messages loaded.`);
+                if (intersectionObserver) intersectionObserver.disconnect();
                 return;
             }
 
@@ -1324,7 +1324,7 @@
                 fragment.appendChild(messageEl);
             }
 
-            const topLoader = document.getElementById('loader');
+            
             chatWindow.insertBefore(fragment, topLoader.nextSibling); 
             
             renderedMessagesCount += (endIndex - startIndex);
@@ -1345,7 +1345,7 @@
                     intersectionObserver.observe(topLoader);
                 }
             } else {
-                topLoader.style.display = 'none';
+                if(topLoader) topLoader.style.display = 'none';
                 updateStatus(`All ${session.allMessages.length} messages loaded.`);
             }
         }
@@ -1635,7 +1635,8 @@
                 
                 setupIntersectionObserver();
             } else {
-                alert('Date not found in currently loaded messages. Scroll up to load older messages and try again.');
+                 // This case should be hit if the message is already rendered but not found (e.g., hidden by search)
+                alert('Date not found. Clear any search filters and try again, or scroll up to load older messages.');
             }
         }
         
@@ -1782,6 +1783,7 @@
         }
 
         function findFileInZip(fileName, entries) {
+            if (!entries) return null; // Guard against un-loaded sessions
             if (entries[fileName]) {
                 return entries[fileName];
             }
@@ -1791,6 +1793,7 @@
         }
         
         function formatDateForISO(dateStr) {
+            if (!dateStr) return null;
             const parts = dateStr.split('/');
             if (parts.length !== 3) return null; // Invalid date format
             
@@ -1813,7 +1816,7 @@
         function getAvatarColor(str) {
             const colors = ['#d9534f', '#5bc0de', '#5cb85c', '#f0ad4e', '#0275d8', '#6a1b9a', '#ad1457', '#d84315'];
             let hash = 0;
-            if (str.length === 0) return colors[0];
+            if (!str || str.length === 0) return colors[0];
             for (let i = 0; i < str.length; i++) {
                 hash = str.charCodeAt(i) + ((hash << 5) - hash);
                 hash = hash & hash; // Convert to 32bit integer
