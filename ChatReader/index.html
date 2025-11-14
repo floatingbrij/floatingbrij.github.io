@@ -166,6 +166,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            min-width: 0; /* <-- FIX: Ensures text-overflow works */
         }
         
         .chat-name-time {
@@ -227,6 +228,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            min-width: 0; /* <-- FIX: Prevents this panel from expanding and pushing sidebar off-screen */
         }
 
         #welcome-screen {
@@ -455,11 +457,18 @@
         .message.received .timestamp { text-align: right; }
         .message.system .timestamp { display: none; }
         
-        .media-attachment { cursor: pointer; margin-top: 5px; }
+        .media-attachment { 
+            cursor: pointer; 
+            margin-top: 5px;
+            max-width: 100%;
+        }
         .media-attachment img,
         .media-attachment video {
-            max-width: 100%;
-            height: auto;
+            max-width: 100%;       /* Will not overflow bubble */
+            max-height: 400px;     /* *** ADDED THIS LINE *** */
+            width: auto;           /* Maintain aspect ratio */
+            height: auto;          /* Maintain aspect ratio */
+            object-fit: contain;   /* Fit within bounds without stretch */
             border-radius: 8px;
             display: block;
         }
@@ -552,13 +561,13 @@
             cursor: pointer;
             overflow: hidden;
             border-radius: 8px;
-            height: 150px;
+            aspect-ratio: 1 / 1; /* *** ADDED THIS LINE *** */
             background-color: var(--header-bg-color);
         }
         .gallery-item img, .gallery-item video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover; /* *** CHANGED: from 'contain' to 'cover' for a uniform grid */
         }
         
         /* Lightbox Modal */
@@ -692,7 +701,7 @@
     
     <script>
         // --- Constants and State ---
-        const BATCH_SIZE = 50; // <-- CORRECTED: Moved to global scope
+        const BATCH_SIZE = 50; 
         const chatSessions = new Map(); // In-memory cache for chat data
         let activeChatId = null;
         let renderedMessagesCount = 0;
@@ -1063,7 +1072,7 @@
                 
                 item.innerHTML = `
                     <div class="chat-avatar" style="background-color: ${getAvatarColor(session.name)}">${displayInitial}</div>
-                    <div class="chat-details"> 
+                    <div class="chat-details">
                         <div class="chat-name-time">
                             <span class="chat-name">${displayName}</span>
                             <span class="chat-time">${session.lastMessageTimestamp}</span>
@@ -1176,10 +1185,14 @@
             updateStatus('Clearing all data...');
             try {
                 const t = db.transaction([STORE_FILES, STORE_META], 'readwrite');
-                await Promise.all([
-                    t.objectStore(STORE_FILES).clear(),
-                    t.objectStore(STORE_META).clear()
-                ]);
+                const store1 = t.objectStore(STORE_FILES);
+                const store2 = t.objectStore(STORE_META);
+                store1.clear();
+                store2.clear();
+                await new Promise((resolve, reject) => {
+                    t.oncomplete = resolve;
+                    t.onerror = reject;
+                });
             } catch (error) {
                 console.error("Error clearing DB:", error);
                 updateStatus("Could not clear database.", true);
@@ -1199,8 +1212,9 @@
             const lines = text.split('\n');
             const messages = [];
             const authors = new Set();
-            const userMessageRegex = /^\[([\d/]+, \d{1,2}:\d{2}:\d{2}\s[AP]M)\] (.*?): ([\s\S]+)/;
-            const systemMessageRegex = /^\[([\d/]+, \d{1,2}:\d{2}:\d{2}\s[AP]M)\] ([\s\S]+)/;
+            // Broader regex to catch different date/time formats e.g. [20/12/23, 9:22:29 PM] or [12/20/2023, 9:22 PM]
+            const userMessageRegex = /^\[([\d./]+, \d{1,2}:\d{2}(?::\d{2})?\s?[AP]?M?)\] (.*?): ([\s\S]+)/;
+            const systemMessageRegex = /^\[([\d./]+, \d{1,2}:\d{2}(?::\d{2})?\s?[AP]?M?)\] ([\s\S]+)/;
             
             let currentMessage = null;
 
@@ -1227,13 +1241,29 @@
                         currentMessage = null; 
                         
                         const [_, timestamp, message] = systemMatch;
-                        messages.push({
-                            timestamp: timestamp.trim(),
-                            isoDate: formatDateForISO(timestamp.split(',')[0].trim()),
-                            author: 'System',
-                            message: message.trim(),
-                            type: 'system'
-                        });
+                        
+                        // Check if it's a "user: message" format that was mis-parsed as system
+                        if (message.includes(': ') && !message.includes('changed') && !message.includes('added') && !message.includes('left') && !message.includes('created') && !message.includes('removed') && !message.includes('security code')) {
+                             const parts = message.split(/: (.+)/);
+                             const trimmedAuthor = parts[0].trim();
+                             authors.add(trimmedAuthor);
+                             currentMessage = {
+                                timestamp: `${date.trim()}, ${time.trim()}`,
+                                isoDate: formatDateForISO(date.trim()),
+                                author: trimmedAuthor,
+                                message: parts[1] ? parts[1].trim() : '',
+                                type: parts[1] && parts[1].includes('<attached:') ? 'media' : 'text'
+                            };
+                        } else {
+                            // It's a real system message
+                            messages.push({
+                                timestamp: `${date.trim()}, ${time.trim()}`,
+                                isoDate: formatDateForISO(date.trim()),
+                                author: 'System',
+                                message: message.trim(),
+                                type: 'system'
+                            });
+                        }
                     } else if (currentMessage) {
                         currentMessage.message += '\n' + line.trim();
                     }
@@ -1389,7 +1419,8 @@
                 
                 if (session.isAnonymized) {
                     session.authorNameMap.forEach((genericName, realName) => {
-                        const regex = new RegExp(`(?<!\\w)${realName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}(?!\\w)`, 'g');
+                        const escapedName = realName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                        const regex = new RegExp(`(?<!\\w)${escapedName}(?!\\w)`, 'g');
                         systemMsg = systemMsg.replace(regex, genericName);
                     });
                 }
@@ -1548,7 +1579,7 @@
                 }
                 const url = match[0];
                 const a = document.createElement('a');
-                a.href = url.startsWith('www.') ? 'http://' + url : url;
+a.href = url.startsWith('www.') ? 'http://' + url : url;
                 a.textContent = url;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
@@ -1635,8 +1666,7 @@
                 
                 setupIntersectionObserver();
             } else {
-                 // This case should be hit if the message is already rendered but not found (e.g., hidden by search)
-                alert('Date not found. Clear any search filters and try again, or scroll up to load older messages.');
+                 alert('Date not found in currently loaded messages. Scroll up to load older messages and try again.');
             }
         }
         
@@ -1772,69 +1802,90 @@
             }
         }
 
-        // --- Utility Functions ---
+// --- Utility Functions ---
 
-        /**
-         * Updates the status bar text.
-         */
-        function updateStatus(message, isError = false) {
-            statusBar.textContent = message;
-            statusBar.style.backgroundColor = isError ? 'var(--danger-color)' : '#075E54';
-        }
+/**
+ * Updates the status bar text.
+ */
+function updateStatus(message, isError = false) {
+    statusBar.textContent = message;
+    statusBar.style.backgroundColor = isError ? 'var(--danger-color)' : '#075E54';
+}
 
-        function findFileInZip(fileName, entries) {
-            if (!entries) return null; // Guard against un-loaded sessions
-            if (entries[fileName]) {
-                return entries[fileName];
-            }
-            const simpleName = fileName.split('/').pop();
-            const foundEntry = Object.values(entries).find(entry => entry.name.endsWith(simpleName));
-            return foundEntry;
-        }
-        
-        function formatDateForISO(dateStr) {
-            if (!dateStr) return null;
-            const parts = dateStr.split('/');
-            if (parts.length !== 3) return null; // Invalid date format
-            
-            const d = parts[0].padStart(2, '0');
-            const m = parts[1].padStart(2, '0');
-            let y = parts[2];
-            if (y.length === 2) y = '20' + y;
-            return `${y}-${m}-${d}`;
-        }
+function findFileInZip(fileName, entries) {
+    if (!entries) return null; // Guard against un-loaded sessions
+    if (entries[fileName]) {
+        return entries[fileName];
+    }
+    const simpleName = fileName.split('/').pop();
+    const foundEntry = Object.values(entries).find(entry => entry.name.endsWith(simpleName));
+    return foundEntry;
+}
 
-        function formatBytes(bytes, decimals = 2) {
-            if (!bytes || bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
-        
-        function getAvatarColor(str) {
-            const colors = ['#d9534f', '#5bc0de', '#5cb85c', '#f0ad4e', '#0275d8', '#6a1b9a', '#ad1457', '#d84315'];
-            let hash = 0;
-            if (!str || str.length === 0) return colors[0];
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                hash = hash & hash; // Convert to 32bit integer
-            }
-            return colors[Math.abs(hash) % colors.length];
-        }
-        
-        function handleDragOver(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            welcomeDropZone.style.backgroundColor = 'var(--active-bg)';
-        }
+function formatDateForISO(dateStr) {
+    if (!dateStr) return null;
+    // Format: DD/MM/YY or DD/MM/YYYY or MM/DD/YYYY or M/D/YY etc.
+    // Handles . or / as separators
+    const parts = dateStr.replace(/\./g, '/').split('/');
+    if (parts.length !== 3) return null; // Invalid date format
 
-        function handleDragLeave(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            welcomeDropZone.style.backgroundColor = 'var(--header-bg-color)';
-        }
+    let day, month, year;
+    
+    // Check for DD/MM/YY format (common outside US)
+    if (parseInt(parts[1], 10) > 12) { 
+        day = parts[0].padStart(2, '0');
+        month = parts[1].padStart(2, '0');
+        year = parts[2];
+    } 
+    // Check for MM/DD/YY format (common in US)
+    else if (parseInt(parts[0], 10) > 12) { 
+        month = parts[0].padStart(2, '0');
+        day = parts[1].padStart(2, '0');
+        year = parts[2];
+    } else {
+        // Ambiguous (e.g., 01/02/24). 
+        // WhatsApp default export is DD/MM/YY. We will assume this.
+        day = parts[0].padStart(2, '0');
+        month = parts[1].padStart(2, '0');
+        year = parts[2];
+    }
+
+    if (year.length === 2) year = '20' + year;
+    return `${year}-${month}-${day}`;
+}
+
+
+function formatBytes(bytes, decimals = 2) {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function getAvatarColor(str) {
+    const colors = ['#d9534f', '#5bc0de', '#5cb85c', '#f0ad4e', '#0275d8', '#6a1b9a', '#ad1457', '#d84315'];
+    let hash = 0;
+    if (!str || str.length === 0) return colors[0];
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    welcomeDropZone.style.backgroundColor = 'var(--active-bg)';
+}
+
+function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    welcomeDropZone.style.backgroundColor = 'var(--header-bg-color)';
+}
     </script>
 </body>
 </html>
