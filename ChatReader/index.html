@@ -276,6 +276,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            flex-shrink: 0;
         }
         
         #controls-top, #controls-bottom {
@@ -607,7 +608,7 @@
 </head>
 <body class="light-mode">
 
-    <input type="file" id="fileInput" accept=".zip" onchange="handleFileSelect(event)" multiple>
+    <input type="file" id="fileInput" accept=".zip" multiple>
 
     <div id="app-container">
         
@@ -615,7 +616,7 @@
             <div id="chat-list-header">
                 <h2>Chats</h2>
                 <div id="chat-list-controls">
-                    <button id="add-chat-btn" onclick="document.getElementById('fileInput').click()" title="Add new chat ZIP">+ Add</button>
+                    <button id="add-chat-btn" title="Add new chat ZIP">+ Add</button>
                     <button id="clear-all-btn" title="Clear all stored chats">Clear All</button>
                     <label class="switch" title="Toggle dark mode">
                         <input type="checkbox" id="themeToggle">
@@ -691,7 +692,7 @@
     
     <script>
         // --- State Management ---
-        const chatSessions = new Map(); // In-memory cache for *fully loaded* chat data
+        const chatSessions = new Map(); // In-memory cache for chat data
         let activeChatId = null;
         let renderedMessagesCount = 0;
         let intersectionObserver;
@@ -702,8 +703,8 @@
         let db;
         const DB_NAME = 'WhatsAppChatViewerDB';
         const DB_VERSION = 1;
-        const STORE_FILES = 'chatFiles';
-        const STORE_META = 'chatMetadata';
+        const STORE_FILES = 'chatFiles'; // Stores the raw zip/file blobs
+        const STORE_META = 'chatMetadata'; // Stores the parsed metadata
 
         // --- DOM Elements ---
         const fileInput = document.getElementById('fileInput');
@@ -723,9 +724,10 @@
         const statsButton = document.getElementById('statsButton');
         const mediaButton = document.getElementById('mediaButton');
         const clearAllButton = document.getElementById('clear-all-btn');
+        const addChatButton = document.getElementById('add-chat-btn');
         const contextMenu = document.getElementById('chat-context-menu');
         const deleteChatItem = document.getElementById('delete-chat-item');
-
+        
         // --- Modal Elements ---
         const statsModal = document.getElementById('statsModal');
         const mediaGalleryModal = document.getElementById('mediaGalleryModal');
@@ -734,8 +736,11 @@
         // --- Initialization on Page Load ---
         window.addEventListener('DOMContentLoaded', initApp);
         
+        /**
+         * Runs on page load. Sets up event listeners and initializes the database.
+         */
         async function initApp() {
-            // Set up all event listeners
+            // Setup Event Listeners
             fileInput.addEventListener('change', handleFileSelect);
             welcomeDropZone.addEventListener('dragover', handleDragOver);
             welcomeDropZone.addEventListener('dragleave', handleDragLeave);
@@ -751,6 +756,7 @@
             statsButton.addEventListener('click', showStats);
             mediaButton.addEventListener('click', showMediaGallery);
             clearAllButton.addEventListener('click', clearAllData);
+            addChatButton.onclick = () => fileInput.click();
             
             document.getElementById('stats-close').onclick = () => closeModal('statsModal');
             document.getElementById('media-close').onclick = () => closeModal('mediaGalleryModal');
@@ -762,16 +768,19 @@
                 contextMenu.style.display = 'none'; // Hide context menu on any click
             };
             
-            // Set theme
+            // Set theme from localStorage
             const savedTheme = localStorage.getItem('chatViewerTheme') || 'light';
             themeToggle.checked = (savedTheme === 'dark');
             toggleDarkMode();
 
-            // Initialize database
-            await initializeDB();
-            
-            // Load chats from DB
-            await loadChatsFromDB();
+            // Initialize database and load existing chats
+            try {
+                await initializeDB();
+                await loadChatsFromDB();
+            } catch (error) {
+                console.error("Failed to initialize app:", error);
+                updateStatus("Error: Could not load data.", true);
+            }
         }
 
         // --- Database Functions ---
@@ -783,10 +792,10 @@
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
                     if (!db.objectStoreNames.contains(STORE_FILES)) {
-                        db.createObjectStore(STORE_FILES); // Key will be chatId
+                        db.createObjectStore(STORE_FILES); // Key: chatId (filename), Value: File Blob
                     }
                     if (!db.objectStoreNames.contains(STORE_META)) {
-                        db.createObjectStore(STORE_META, { keyPath: 'id' });
+                        db.createObjectStore(STORE_META, { keyPath: 'id' }); // Key: chatId (filename), Value: Metadata object
                     }
                 };
                 
@@ -805,13 +814,26 @@
         }
         
         async function loadChatsFromDB() {
+            if (!db) return;
             updateStatus('Loading chats from memory...');
-            let metadata = await dbGetAll(STORE_META);
+            let metadata;
+            try {
+                metadata = await dbGetAll(STORE_META);
+            } catch (error) {
+                console.error("Error fetching from DB:", error);
+                updateStatus("Error reading from database.", true);
+                return;
+            }
             
             chatSessions.clear();
             for (const meta of metadata) {
-                // Load only metadata. The full data will be lazy-loaded on click.
-                chatSessions.set(meta.id, { ...meta, isLoaded: false });
+                // Load only metadata. The full data (zip) will be lazy-loaded on click.
+                chatSessions.set(meta.id, { 
+                    ...meta, 
+                    uniqueAuthors: new Set(meta.uniqueAuthors), // Re-hydrate Set
+                    authorNameMap: new Map(meta.authorNameMap), // Re-hydrate Map
+                    isLoaded: false // Mark as not yet loaded into memory
+                });
             }
             
             renderChatList();
@@ -831,45 +853,50 @@
 
         function dbPut(storeName, value, key) {
             return new Promise((resolve, reject) => {
+                if (!db) return reject("DB not initialized");
                 const transaction = db.transaction([storeName], 'readwrite');
                 const store = transaction.objectStore(storeName);
                 const request = store.put(value, key);
                 request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                request.onerror = (e) => reject(request.error);
             });
         }
         
         function dbGet(storeName, key) {
             return new Promise((resolve, reject) => {
+                if (!db) return reject("DB not initialized");
                 const transaction = db.transaction([storeName], 'readonly');
                 const store = transaction.objectStore(storeName);
                 const request = store.get(key);
                 request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                request.onerror = (e) => reject(request.error);
             });
         }
 
         function dbGetAll(storeName) {
             return new Promise((resolve, reject) => {
+                if (!db) return reject("DB not initialized");
                 const transaction = db.transaction([storeName], 'readonly');
                 const store = transaction.objectStore(storeName);
                 const request = store.getAll();
                 request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                request.onerror = (e) => reject(request.error);
             });
         }
         
         function dbDelete(storeName, key) {
              return new Promise((resolve, reject) => {
+                if (!db) return reject("DB not initialized");
                 const transaction = db.transaction([storeName], 'readwrite');
                 const store = transaction.objectStore(storeName);
                 const request = store.delete(key);
                 request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
+                request.onerror = (e) => reject(request.error);
             });
         }
         
         async function updateMetadata(session) {
+            if (!session) return;
             // Create a storable metadata object
             const metadata = {
                 id: session.id,
@@ -950,6 +977,10 @@
                 updateStatus(`Parsing messages for "${chatName}"...`);
                 const { messages, authors } = parseChatText(chatText);
                 
+                if (messages.length === 0) {
+                     throw new Error(`No messages found in _chat.txt for ${chatName}.`);
+                }
+                
                 // 4. Create author map
                 const authorNameMap = new Map();
                 const sortedAuthors = Array.from(authors).sort();
@@ -959,7 +990,7 @@
                 }
                 
                 // 5. Get snippet for chat list
-                const lastMsg = messages.length > 0 ? messages[messages.length - 1] : { message: "No messages", timestamp: "" };
+                const lastMsg = messages[messages.length - 1];
                 let snippet = lastMsg.type === 'media' ? '📷 Media' : lastMsg.message;
                 if (lastMsg.type === 'system') snippet = `ℹ️ ${snippet}`;
                 snippet = snippet.replace(/\n/g, ' '); 
@@ -1009,7 +1040,6 @@
                 return;
             }
 
-            // Sort chats by name for consistency
             const sortedSessions = [...chatSessions.values()].sort((a, b) => a.name.localeCompare(b.name));
             
             sortedSessions.forEach(session => {
@@ -1018,7 +1048,6 @@
                 item.dataset.chatId = session.id;
                 item.onclick = () => switchChat(session.id);
                 
-                // Add context menu (right-click)
                 item.oncontextmenu = (e) => {
                     e.preventDefault();
                     contextMenu.style.display = 'block';
@@ -1031,12 +1060,12 @@
                     item.classList.add('active');
                 }
                 
-                const displayName = session.isAnonymized ? session.authorNameMap.get(session.name) || `Chat ${[...chatSessions.keys()].indexOf(session.id) + 1}` : session.name;
+                const displayName = session.isAnonymized ? (session.authorNameMap.get(session.name) || `Chat ${[...chatSessions.keys()].indexOf(session.id) + 1}`) : session.name;
                 const displayInitial = displayName.substring(0, 1).toUpperCase();
                 
                 item.innerHTML = `
                     <div class="chat-avatar" style="background-color: ${getAvatarColor(session.name)}">${displayInitial}</div>
-                    <div class="chat-details">
+                    <div class.chat-details">
                         <div class="chat-name-time">
                             <span class="chat-name">${displayName}</span>
                             <span class="chat-time">${session.lastMessageTimestamp}</span>
@@ -1055,17 +1084,19 @@
                 localStorage.removeItem('lastActiveChatId');
                 return;
             }
+            
+            if (activeChatId === chatId && getActiveSession()?.isLoaded) {
+                 return; // Already active and loaded, do nothing
+            }
 
             activeChatId = chatId;
             localStorage.setItem('lastActiveChatId', chatId);
             
             let session = chatSessions.get(chatId);
             
-            // Show chat window
             welcomeScreen.style.display = 'none';
             chatView.style.display = 'flex';
             
-            // Check if chat is fully loaded in memory
             if (!session.isLoaded) {
                 updateStatus(`Loading chat "${session.name}" from database...`);
                 
@@ -1075,34 +1106,37 @@
                     return;
                 }
                 
-                const { entries } = await unzipit.unzip(file);
+                progressContainer.style.display = 'block';
+                const { entries } = await unzipit.unzip(file, {
+                    onprogress: (event) => {
+                        const percent = (event.loaded / event.total) * 100;
+                        progressBar.value = percent;
+                    }
+                });
+                progressContainer.style.display = 'none';
+                
                 const chatFileName = Object.keys(entries).find(name => name.endsWith('_chat.txt'));
+                if (!chatFileName) {
+                    updateStatus(`Error: _chat.txt not found in stored zip for ${session.name}`, true);
+                    return;
+                }
                 const chatText = await entries[chatFileName].text();
                 const { messages } = parseChatText(chatText);
                 
-                // Upgrade the session object in memory
                 session.allMessages = messages;
                 session.zipFileEntries = entries;
                 session.isLoaded = true;
                 session.mediaCache = new Map();
                 
-                // Re-hydrate maps from stored arrays
-                session.uniqueAuthors = new Set(session.uniqueAuthors);
-                session.authorNameMap = new Map(session.authorNameMap);
-                
                 chatSessions.set(chatId, session);
             }
             
-            // Update controls
             populateUserDropdown(session);
             anonymizeCheck.checked = session.isAnonymized;
             searchInput.value = '';
             dateInput.value = '';
             
-            // Update active state in sidebar
             renderChatList();
-
-            // Render the chat messages
             await rerenderChat();
         }
 
@@ -1110,30 +1144,30 @@
             const session = chatSessions.get(chatId);
             if (!session) return;
             
-            const chatName = session.isAnonymized ? session.authorNameMap.get(session.name) : session.name;
+            const chatName = session.isAnonymized ? (session.authorNameMap.get(session.name) || `Chat ${[...chatSessions.keys()].indexOf(session.id) + 1}`) : session.name;
             if (!confirm(`Are you sure you want to delete the chat "${chatName}"? This cannot be undone.`)) {
                 return;
             }
             
-            // Remove from DB
-            await dbDelete(STORE_FILES, chatId);
-            await dbDelete(STORE_META, chatId);
+            try {
+                await dbDelete(STORE_FILES, chatId);
+                await dbDelete(STORE_META, chatId);
+            } catch (error) {
+                 console.error("Error deleting from DB:", error);
+                 updateStatus("Could not delete chat from database.", true);
+                 return;
+            }
             
-            // Remove from memory
             chatSessions.delete(chatId);
             
-            // Clear media cache for this session (already done by deleting the session object)
-            
-            // Update UI
             renderChatList();
             
-            // If the deleted chat was the active one, show welcome screen
             if (activeChatId === chatId) {
                 activeChatId = null;
                 localStorage.removeItem('lastActiveChatId');
                 showWelcomeScreen();
-                updateStatus('Chat deleted.');
             }
+            updateStatus('Chat deleted.');
         }
         
         async function clearAllData() {
@@ -1142,11 +1176,17 @@
             }
             
             updateStatus('Clearing all data...');
-            const t = db.transaction([STORE_FILES, STORE_META], 'readwrite');
-            await Promise.all([
-                t.objectStore(STORE_FILES).clear(),
-                t.objectStore(STORE_META).clear()
-            ]);
+            try {
+                const t = db.transaction([STORE_FILES, STORE_META], 'readwrite');
+                await Promise.all([
+                    t.objectStore(STORE_FILES).clear(),
+                    t.objectStore(STORE_META).clear()
+                ]);
+            } catch (error) {
+                console.error("Error clearing DB:", error);
+                updateStatus("Could not clear database.", true);
+                return;
+            }
             
             localStorage.removeItem('lastActiveChatId');
             chatSessions.clear();
@@ -1157,9 +1197,6 @@
             updateStatus('All chats cleared.');
         }
 
-        /**
-         * Parses the raw text content of _chat.txt into a structured array.
-         */
         function parseChatText(text) {
             const lines = text.split('\n');
             const messages = [];
@@ -1210,7 +1247,10 @@
         
         function populateUserDropdown(session) {
             if (!session) session = getActiveSession();
-            if (!session) return;
+            if (!session) {
+                userSelect.innerHTML = '';
+                return;
+            }
             
             userSelect.innerHTML = ''; 
             const defaultOption = document.createElement('option');
@@ -1234,7 +1274,8 @@
         async function rerenderChat() {
             const session = getActiveSession();
             if (!session || !session.isLoaded) {
-                 chatWindow.innerHTML = ''; // Clear window if no chat is active
+                 chatWindow.innerHTML = ''; 
+                 showWelcomeScreen();
                  return;
             }
             
@@ -1253,7 +1294,7 @@
             await renderMoreMessages(true); 
             
             setupIntersectionObserver();
-            handleSearch(); // Re-apply search filter
+            handleSearch();
             
             const selectedName = session.selectedUser ? (session.isAnonymized ? session.authorNameMap.get(session.selectedUser) : session.selectedUser) : 'Everyone';
             updateStatus(`Chat "${session.name}" rendered as '${selectedName}'`);
@@ -1268,6 +1309,12 @@
             const fragment = document.createDocumentFragment();
             const startIndex = Math.max(0, session.allMessages.length - renderedMessagesCount - BATCH_SIZE);
             const endIndex = session.allMessages.length - renderedMessagesCount;
+            
+            if (startIndex === endIndex) {
+                document.getElementById('loader').style.display = 'none';
+                 updateStatus(`All ${session.allMessages.length} messages loaded.`);
+                return;
+            }
 
             if (intersectionObserver) intersectionObserver.disconnect();
 
@@ -1298,7 +1345,7 @@
                     intersectionObserver.observe(topLoader);
                 }
             } else {
-                if (topLoader) topLoader.style.display = 'none';
+                topLoader.style.display = 'none';
                 updateStatus(`All ${session.allMessages.length} messages loaded.`);
             }
         }
@@ -1318,12 +1365,14 @@
 
             const topLoader = document.getElementById('loader');
             if (topLoader) {
+                topLoader.style.display = 'block'; // Make sure it's visible
                 intersectionObserver.observe(topLoader);
             }
         }
 
         async function createMessageElement(messageData) { 
             const session = getActiveSession();
+            if (!session) return document.createElement('div'); // Return empty div if session is gone
             
             const messageEl = document.createElement('div');
             messageEl.classList.add('message');
@@ -1400,6 +1449,8 @@
 
         async function createMediaElement(entry, fileName) { 
             const session = getActiveSession();
+            if (!session) return document.createElement('div');
+
             const wrapper = document.createElement('div');
             wrapper.classList.add('media-attachment');
             
@@ -1544,7 +1595,7 @@
             if (!date || !activeChatId) return;
 
             const session = getActiveSession();
-            if (!session.isLoaded) await switchChat(activeChatId); // Ensure chat is loaded
+            if (!session.isLoaded) await switchChat(activeChatId);
             
             let targetMsg = chatWindow.querySelector(`.message[data-date="${date}"]`);
             if (targetMsg) {
@@ -1555,9 +1606,7 @@
             const targetIndex = session.allMessages.findIndex(m => m.isoDate >= date);
             
             if (targetIndex === -1) {
-                // Date is in the future or after last message
                 if(session.allMessages.length > 0) {
-                    // Try to scroll to the end
                     chatWindow.scrollTop = chatWindow.scrollHeight;
                 }
                 alert('No messages found on or after this date.');
@@ -1565,7 +1614,6 @@
             }
             
             if(targetIndex < (session.allMessages.length - renderedMessagesCount)) {
-                // Date is in a part of the chat that isn't rendered yet
                 if (intersectionObserver) intersectionObserver.disconnect();
                 chatWindow.innerHTML = ''; 
                 userColors.clear();
@@ -1587,8 +1635,7 @@
                 
                 setupIntersectionObserver();
             } else {
-                // Date is already rendered but was missed (e.g., filtered by search)
-                alert('Date not found. Clear search filter and try again.');
+                alert('Date not found in currently loaded messages. Scroll up to load older messages and try again.');
             }
         }
         
@@ -1726,6 +1773,14 @@
 
         // --- Utility Functions ---
 
+        /**
+         * Updates the status bar text.
+         */
+        function updateStatus(message, isError = false) {
+            statusBar.textContent = message;
+            statusBar.style.backgroundColor = isError ? 'var(--danger-color)' : '#075E54';
+        }
+
         function findFileInZip(fileName, entries) {
             if (entries[fileName]) {
                 return entries[fileName];
@@ -1737,6 +1792,8 @@
         
         function formatDateForISO(dateStr) {
             const parts = dateStr.split('/');
+            if (parts.length !== 3) return null; // Invalid date format
+            
             const d = parts[0].padStart(2, '0');
             const m = parts[1].padStart(2, '0');
             let y = parts[2];
@@ -1756,8 +1813,10 @@
         function getAvatarColor(str) {
             const colors = ['#d9534f', '#5bc0de', '#5cb85c', '#f0ad4e', '#0275d8', '#6a1b9a', '#ad1457', '#d84315'];
             let hash = 0;
+            if (str.length === 0) return colors[0];
             for (let i = 0; i < str.length; i++) {
                 hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                hash = hash & hash; // Convert to 32bit integer
             }
             return colors[Math.abs(hash) % colors.length];
         }
