@@ -229,3 +229,120 @@ function createCelebrationHearts() {
         container.appendChild(heart);
     }
 }
+
+// ============ SLIDING PUZZLE (IMAGE 24) ============
+const puzzleContainer = document.getElementById('puzzleGrid');
+const puzzleStatus = document.getElementById('puzzleStatus');
+
+if (puzzleContainer && puzzleStatus) {
+    const size = 3;
+    const total = size * size;
+    let board = [];
+    let emptyIndex = total - 1;
+    let moves = 0;
+
+    function initBoard() {
+        board = [];
+        for (let i = 0; i < total - 1; i++) {
+            board.push(i);
+        }
+        board.push(null); // last is empty
+        emptyIndex = total - 1;
+    }
+
+    function isSolvable(arr) {
+        const flat = arr.filter((x) => x !== null);
+        let inv = 0;
+        for (let i = 0; i < flat.length; i++) {
+            for (let j = i + 1; j < flat.length; j++) {
+                if (flat[i] > flat[j]) inv++;
+            }
+        }
+        // 3x3 puzzle: solvable when inversion count is even
+        return inv % 2 === 0;
+    }
+
+    function shuffleBoard() {
+        let shuffled;
+        do {
+            shuffled = [...board];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+        } while (!isSolvable(shuffled) || shuffled.every((v, idx) => v === board[idx]));
+
+        board = shuffled;
+        emptyIndex = board.indexOf(null);
+    }
+
+    function isAdjacent(i1, i2) {
+        const r1 = Math.floor(i1 / size);
+        const c1 = i1 % size;
+        const r2 = Math.floor(i2 / size);
+        const c2 = i2 % size;
+        return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+    }
+
+    function handleTileClick(pos) {
+        if (!isAdjacent(pos, emptyIndex)) return;
+
+        [board[pos], board[emptyIndex]] = [board[emptyIndex], board[pos]];
+        emptyIndex = pos;
+        moves += 1;
+        updateStatus();
+        render();
+
+        if (isSolved()) {
+            onSolved();
+        }
+    }
+
+    function isSolved() {
+        for (let i = 0; i < total - 1; i++) {
+            if (board[i] !== i) return false;
+        }
+        return board[total - 1] === null;
+    }
+
+    function updateStatus() {
+        puzzleStatus.textContent = `Moves: ${moves}`;
+    }
+
+    function render() {
+        puzzleContainer.innerHTML = '';
+
+        board.forEach((piece, index) => {
+            const tile = document.createElement('button');
+            tile.type = 'button';
+            tile.className = 'puzzle-tile';
+            tile.dataset.index = index.toString();
+
+            if (piece === null) {
+                tile.classList.add('puzzle-empty');
+                tile.setAttribute('aria-label', 'Empty space');
+            } else {
+                const row = Math.floor(piece / size);
+                const col = piece % size;
+
+                tile.style.backgroundPosition = `${(col / (size - 1)) * 100}% ${(row / (size - 1)) * 100}%`;
+                tile.setAttribute('aria-label', 'Puzzle piece');
+                tile.addEventListener('click', () => handleTileClick(index));
+            }
+
+            puzzleContainer.appendChild(tile);
+        });
+    }
+
+    function onSolved() {
+        const root = document.documentElement;
+        root.classList.add('puzzle-solved');
+        puzzleStatus.textContent = 'Solved! Scroll a little down for your question 💕';
+    }
+
+    initBoard();
+    shuffleBoard();
+    moves = 0;
+    updateStatus();
+    render();
+}
