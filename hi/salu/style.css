@@ -218,12 +218,19 @@ body {
 
 /* ============ FADE IN ANIMATION ============ */
 .fade-in {
+    /* Fallback: if JS doesn't run, keep content visible */
+    opacity: 1;
+    transform: none;
+}
+
+/* When JS is active, enable reveal animations */
+.js .fade-in {
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-.fade-in.visible {
+.js .fade-in.visible {
     opacity: 1;
     transform: translateY(0);
 }
