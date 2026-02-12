@@ -1,8 +1,13 @@
 
+// Mark that JS is running (used for graceful CSS fallbacks)
+document.documentElement.classList.add('js');
+
 // ============ FLOATING HEARTS ============
 function createFloatingHearts() {
     const container = document.getElementById('floatingHearts');
     const hearts = ['💕', '💗', '💖', '💝', '💓', '♥️', '🩷', '🌸', '✨', '🦋'];
+
+    if (!container) return;
 
     for (let i = 0; i < 30; i++) {
         const heart = document.createElement('div');
@@ -18,25 +23,61 @@ function createFloatingHearts() {
 
 createFloatingHearts();
 
+// ============ GIF FALLBACKS ============
+// Some Giphy "v1" URLs can fail (blocked/expired). If an image fails to load,
+// swap it to a cute emoji placeholder so the layout never looks broken.
+document.querySelectorAll('img').forEach((img) => {
+    img.addEventListener('error', () => {
+        // Avoid infinite loops if the fallback also fails
+        if (img.dataset.fallbackApplied === 'true') return;
+        img.dataset.fallbackApplied = 'true';
+
+        // Keep sizing consistent with existing styles
+        img.alt = img.alt || 'cute';
+        img.src =
+            'data:image/svg+xml;charset=UTF-8,' +
+            encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0f7"/>
+      <stop offset="0.5" stop-color="#ffe1ee"/>
+      <stop offset="1" stop-color="#f8bbd0"/>
+    </linearGradient>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#e91e63" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect x="16" y="16" rx="28" ry="28" width="388" height="228" fill="url(#g)" filter="url(#s)"/>
+  <text x="210" y="120" text-anchor="middle" font-size="56">💕</text>
+  <text x="210" y="168" text-anchor="middle" font-family="system-ui,Segoe UI,Arial" font-size="18" fill="#ad1457">
+    gif didn’t load but love did
+  </text>
+</svg>`);
+    });
+});
+
 // ============ BACKGROUND MUSIC ============
 const bgMusic = document.getElementById('bgMusic');
 const musicControl = document.getElementById('musicControl');
 let isPlaying = false;
 
-musicControl.addEventListener('click', () => {
-    if (isPlaying) {
-        bgMusic.pause();
-        musicControl.textContent = '🎵';
-        musicControl.classList.remove('playing');
-    } else {
-        bgMusic.play().catch(() => {
-            console.log('Autoplay blocked, user interaction needed');
-        });
-        musicControl.textContent = '🎶';
-        musicControl.classList.add('playing');
-    }
-    isPlaying = !isPlaying;
-});
+if (bgMusic && musicControl) {
+    musicControl.addEventListener('click', () => {
+        if (isPlaying) {
+            bgMusic.pause();
+            musicControl.textContent = '🎵';
+            musicControl.classList.remove('playing');
+        } else {
+            bgMusic.play().catch(() => {
+                console.log('Autoplay blocked, user interaction needed');
+            });
+            musicControl.textContent = '🎶';
+            musicControl.classList.add('playing');
+        }
+        isPlaying = !isPlaying;
+    });
+}
 
 // ============ SCROLL FADE-IN ANIMATION ============
 const fadeElements = document.querySelectorAll('.fade-in');
@@ -63,6 +104,13 @@ const btnNo = document.getElementById('btnNo');
 const valentineQuestion = document.getElementById('valentineQuestion');
 const valentineButtons = document.getElementById('valentineButtons');
 const yesResponse = document.getElementById('yesResponse');
+
+// If this page variant doesn't include the valentine section, stop here gracefully.
+if (!btnYes || !btnNo || !valentineQuestion || !valentineButtons || !yesResponse) {
+    // Still keep fade-in / hearts working.
+    // eslint-disable-next-line no-useless-return
+    return;
+}
 
 // Make No button run away
 let noClickCount = 0;
