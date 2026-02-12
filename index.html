@@ -1,219 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brijesharun G | Portfolio</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    html, body {
-      height: 100%;
-      background: radial-gradient(circle at top left, #1a1a1a, #000);
-      font-family: 'DM Sans', sans-serif;
-      color: #f4f4f4;
-      overflow-x: hidden;
-    }
-    .container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 2rem;
-      animation: fadeIn 2s ease-in;
-      position: relative;
-      z-index: 2;
-    }
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
-      z-index: 1;
-    }
-    h1 {
-      font-size: 3rem;
-      font-weight: 700;
-      background: linear-gradient(90deg, #0ff, #f0f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: glitch 3s infinite, float 6s ease-in-out infinite;
-      letter-spacing: 1px;
-    }
-    p {
-      font-size: 1rem;
-      margin: 1rem 0;
-      max-width: 700px;
-      line-height: 1.6;
-      color: #bbbbbb;
-    }
-    .intro {
-      font-size: 1.2rem;
-      color: #dddddd;
-      margin-bottom: 1rem;
-      animation: fadeSlide 2s ease-in;
-    }
-    .bio {
-      font-size: 1rem;
-      color: #999;
-      margin-top: 2rem;
-      font-style: italic;
-      animation: fadeSlide 3s ease-in;
-    }
-    .links {
-      margin-top: 2rem;
-      animation: fadeSlide 4s ease-in;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      justify-content: center;
-    }
-    .links a {
-      text-decoration: none;
-      color: #00ffff;
-      font-weight: 600;
-      border: 2px solid #00ffff;
-      padding: 0.5rem 1rem;
-      border-radius: 30px;
-      transition: all 0.3s ease-in-out;
-      box-shadow: 0 0 10px #00ffff44;
-    }
-    .links a:hover {
-      background-color: #ff00ff33;
-      color: #ff00ff;
-      border-color: #ff00ff;
-      box-shadow: 0 0 15px #ff00ff77;
-    }
-    .background-circles {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      z-index: 0;
-    }
-    .circle {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 0, 255, 0.05);
-      animation: pulse 10s infinite ease-in-out, rotate 30s linear infinite;
-    }
-    .circle:nth-child(1) {
-      width: 200px;
-      height: 200px;
-      top: 10%;
-      left: 5%;
-    }
-    .circle:nth-child(2) {
-      width: 300px;
-      height: 300px;
-      bottom: 10%;
-      right: 10%;
-      background: rgba(0, 255, 255, 0.05);
-    }
-    .circle:nth-child(3) {
-      width: 150px;
-      height: 150px;
-      bottom: 30%;
-      left: 20%;
-    }
-    .svg-shape {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-    .svg-shape svg {
-      width: 100%;
-      height: 100%;
-    }
-    @keyframes fadeIn {
-      0% {opacity: 0; transform: translateY(40px);}
-      100% {opacity: 1; transform: translateY(0);}
-    }
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes glitch {
-      0% {text-shadow: 1px 1px #00ffff, -1px -1px #ff00ff;}
-      20% {text-shadow: 2px -2px #00ffff, -2px 2px #ff00ff;}
-      40% {text-shadow: -1px -1px #00ffff, 1px 1px #ff00ff;}
-      60% {text-shadow: 1px -1px #00ffff, -1px 1px #ff00ff;}
-      80% {text-shadow: -2px 2px #00ffff, 2px -2px #ff00ff;}
-      100% {text-shadow: 0px 0px #00ffff, 0px 0px #ff00ff;}
-    }
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 0.2;
-      }
-      50% {
-        transform: scale(1.3);
-        opacity: 0.4;
-      }
-    }
-    @keyframes rotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2.5rem;
-      }
-      p, .intro, .bio {
-        font-size: 1rem;
-        padding: 0 1rem;
-      }
-      .links a {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.9rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Bubu 💕</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Caveat:wght@400;700&family=Patrick+Hand&family=Satisfy&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="background-circles">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-  </div>
-  <div class="svg-shape">
-    <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
-      <path fill="#ff00ff11" fill-opacity="1" d="M0,192L1440,128L1440,0L0,0Z"></path>
-    </svg>
-  </div>
-  <div class="overlay"></div>
-  <div class="container">
-    <h1>Brijesharun G</h1>
-    <p class="intro">Crafting clean, powerful Windows apps that impact over 15,000 users.</p>
-    <p>🚀 Member Technical Staff at Zoho Corporation<br/>
-    🧾 Working on Zoho Books, Invoice, and Billing Software<br/>
-    🖥️ Specialist in C# and WinUI with deep experience in desktop application development<br/>
-    🧠 Designed, developed, and optimized large-scale Windows apps with MVVM architecture<br/>
-    🔍 Created custom analyzers and led performance/security initiatives<br/>
-    🛡️ Explored cybersecurity and placed 2nd nationally in InCTF 2022<br/>
-    🎓 B.Tech in Computer Science from SASTRA University (2019 - 2023)</p>
-    <p class="bio">I enjoy building intuitive software, pushing tech boundaries, and contributing to tools that matter. Off the clock, you’ll catch me sketching, gaming, or exploring wild ideas to stay inspired.</p>
-    <div class="links">
-      <a href="mailto:me@brijesharun.com">Email</a>
-      <a href="https://www.linkedin.com/in/floatingbrij" target="_blank">LinkedIn</a>
-      <a href="https://github.com/floatingbrij" target="_blank">GitHub</a>
-    </div>
-  </div>
+
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-stickers">
+            <img src="https://media1.giphy.com/media/l0HlOvJ7yaacpuSas/giphy.gif" alt="cute sticker" class="sticker sticker-top-left">
+            <img src="https://media1.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif" alt="cute sticker" class="sticker sticker-top-right">
+        </div>
+        <div class="hero-content">
+            <h1 class="title-main">For My Bubu</h1>
+            <p class="title-sub">💌 A little letter from my heart to yours 💌</p>
+            <div class="scroll-indicator">
+                <span>scroll down</span>
+                <div class="arrow-down">💕</div>
+            </div>
+        </div>
+    </section>
+
+    <main class="letter-container">
+
+        <!-- Section 1 -->
+        <section class="letter-section fade-in">
+            <div class="cute-divider">
+                <img src="https://media1.giphy.com/media/M90mJvfWfd5mbUuULX/giphy.gif" alt="hearts" class="divider-gif">
+            </div>
+            <p class="letter-text">Hi bubu, from the time I first lost myself in your eyes to this day — <span class="highlight">mai tho tere par fidaa hunnn</span> 🥺💗</p>
+        </section>
+
+        <!-- Photos 1-4 -->
+        <section class="photo-section fade-in">
+            <div class="photo-grid grid-4">
+                <div class="photo-frame frame-style-1"><img src="images/1.jpg" alt="Memory 1"><div class="frame-deco">💕</div></div>
+                <div class="photo-frame frame-style-2"><img src="images/2.jpg" alt="Memory 2"><div class="frame-deco">🌸</div></div>
+                <div class="photo-frame frame-style-3"><img src="images/3.jpg" alt="Memory 3"><div class="frame-deco">✨</div></div>
+                <div class="photo-frame frame-style-4"><img src="images/4.jpg" alt="Memory 4"><div class="frame-deco">💖</div></div>
+            </div>
+        </section>
+
+        <!-- Cute GIF divider -->
+        <div class="gif-divider fade-in">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnl3dTQ0eHF4NHNnbDFmcnByMmFkYmd2d2k3amNubWdyZzR1NjRxdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3oriO6qJiXajN0TyDu/giphy.gif" alt="cute love gif" class="inline-gif">
+        </div>
+
+        <!-- Section 2 -->
+        <section class="letter-section fade-in">
+            <p class="letter-text">
+                It's almost a year? Can't believe that it's been a year already, but at the same time it feels like we have known each other <span class="highlight">forever</span> 💫
+            </p>
+            <p class="letter-text">
+                I'm grateful for you, for your love and compassion. I know loving me is <span class="highlight">very very very hard</span> — 🥹
+            </p>
+        </section>
+
+        <!-- Photo Grid 2: Photos 5-8 -->
+        <section class="photo-section fade-in">
+            <div class="photo-grid grid-collage">
+                <div class="photo-frame frame-style-5 photo-large"><img src="images/5.jpg" alt="Memory 5"><div class="frame-deco">💝</div></div>
+                <div class="photo-frame frame-style-6"><img src="images/6.jpg" alt="Memory 6"><div class="frame-deco">🦋</div></div>
+                <div class="photo-frame frame-style-7"><img src="images/7.jpg" alt="Memory 7"><div class="frame-deco">🌷</div></div>
+                <div class="photo-frame frame-style-8"><img src="images/8.jpg" alt="Memory 8"><div class="frame-deco">💗</div></div>
+            </div>
+        </section>
+
+        <!-- Cute sticker -->
+        <div class="gif-divider fade-in">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWdhcXFsZnVmcGhhaWdnOGEyaDhsMWRiZHNncGRrMHV3bXBhZ2oweCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/IgBLEEliClsUVOeMUI/giphy.gif" alt="bear hug gif" class="inline-gif">
+        </div>
+
+        <!-- Section 3 -->
+        <section class="letter-section fade-in">
+            <p class="letter-text">
+                I have been a very tough person to love, to be with. I haven't been responding properly, my efforts, my priority haven't been even at the bare minimum of what it should have been — 😔
+            </p>
+            <p class="letter-text">
+                I have been self-consumed in my own issues, trying what I feel is right, treading, trying to not hurt — being a nice guy trying to never hurt — in turn <span class="highlight">losing myself, losing the person you loved</span>. I know how much this hurts — 💔
+            </p>
+        </section>
+
+        <!-- Photo Grid 3: Photos 9-12 -->
+        <section class="photo-section fade-in">
+            <div class="photo-grid grid-polaroid">
+                <div class="photo-frame frame-polaroid"><img src="images/9.jpg" alt="Memory 9"><span class="polaroid-caption">us 💕</span></div>
+                <div class="photo-frame frame-polaroid tilt-left"><img src="images/10.jpg" alt="Memory 10"><span class="polaroid-caption">my fav 🥰</span></div>
+                <div class="photo-frame frame-polaroid tilt-right"><img src="images/11.jpg" alt="Memory 11"><span class="polaroid-caption">cutie 🌸</span></div>
+                <div class="photo-frame frame-polaroid"><img src="images/12.jpg" alt="Memory 12"><span class="polaroid-caption">forever 💗</span></div>
+            </div>
+        </section>
+
+        <!-- Cute GIF -->
+        <div class="gif-divider fade-in">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3c3cHQ5OW55NHRqcjN2Z28weGE5M29yN2htanExYnBpZ3F6bDF2NiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0ExhcMymdL2TBGjC/giphy.gif" alt="cute couple gif" class="inline-gif">
+        </div>
+
+        <!-- Section 4 -->
+        <section class="letter-section fade-in">
+            <p class="letter-text">
+                I'm working on myself, becoming the best person I can be. <span class="highlight">Thankyou for holding me tight, trusting me, and trusting us</span> — whatever happens I'll make sure that trust doesn't go. 🤞💖
+            </p>
+        </section>
+
+        <!-- Photo Grid 4: Photos 13-16 -->
+        <section class="photo-section fade-in">
+            <div class="photo-grid grid-4">
+                <div class="photo-frame frame-style-round"><img src="images/13.jpg" alt="Memory 13"></div>
+                <div class="photo-frame frame-style-round"><img src="images/14.jpg" alt="Memory 14"></div>
+                <div class="photo-frame frame-style-round"><img src="images/15.jpg" alt="Memory 15"></div>
+                <div class="photo-frame frame-style-round"><img src="images/16.jpg" alt="Memory 16"></div>
+            </div>
+        </section>
+
+        <!-- Cute GIF -->
+        <div class="gif-divider fade-in">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXlvdnRhOWJld2JlNWZvYnQ0OXh0aDljcDl4c2Z5emh0ZWlkd2RrcyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fVkMgsKClYi3e34KMz/giphy.gif" alt="sparkle heart gif" class="inline-gif small-gif">
+        </div>
+
+        <!-- Section 5 - Tamil Section -->
+        <section class="letter-section tamil-section fade-in">
+            <div class="special-card">
+                <div class="card-sparkle">✨</div>
+                <p class="letter-text tamil-text">
+                    கேளம்பலே கையில வந்த கட்டி தங்கம் நீயே என் செல்லம் — <span class="highlight">en vazhkaiil vantha periya varam en chellam nee nee than</span> 🥺💕
+                </p>
+                <p class="letter-text tamil-text">
+                    Un sirippu, un kannu uruttall, unoda cute hehe, your <span class="highlight">sharp sharp sharp brain</span> — mothathila en idhayathai thirudinava 💘
+                </p>
+                <div class="card-sparkle bottom-sparkle">✨</div>
+            </div>
+        </section>
+
+        <!-- Photo Grid 5: Photos 17-20 -->
+        <section class="photo-section fade-in">
+            <div class="photo-grid grid-mason">
+                <div class="photo-frame frame-style-heart"><img src="images/17.jpg" alt="Memory 17"><div class="frame-deco">💕</div></div>
+                <div class="photo-frame frame-style-1"><img src="images/18.jpg" alt="Memory 18"><div class="frame-deco">🌹</div></div>
+                <div class="photo-frame frame-style-2"><img src="images/19.jpg" alt="Memory 19"><div class="frame-deco">🥰</div></div>
+                <div class="photo-frame frame-style-heart"><img src="images/20.jpg" alt="Memory 20"><div class="frame-deco">💖</div></div>
+            </div>
+        </section>
+
+        <!-- Cute GIF -->
+        <div class="gif-divider fade-in">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWI0ZjVzMmExcjlrdXI1N3Z0eXYxZ3AwZjlrcXV1MnBkMGh1ejhrZiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/EvYHKFMKeGd2Hximhx/giphy.gif" alt="cute love gif" class="inline-gif">
+        </div>
+
+        <!-- Section 6 -->
+        <section class="letter-section fade-in">
+            <p class="letter-text">
+                Unala na evlovo mariruken, mature agiruken — <span class="highlight">I have become a better human</span> because of you 🌸
+            </p>
+            <p class="letter-text big-text">
+                I wish to spend my today, tomorrow, <span class="highlight">my entire life with you</span>. I want to grow old with you. 👵🧓
+            </p>
+            <p class="letter-text love-declaration">
+                I love you en thangam 💗
+            </p>
+        </section>
+
+        <!-- Photo Grid 6: Photos 21-24 -->
+        <section class="photo-section fade-in">
+            <div class="photo-grid grid-polaroid">
+                <div class="photo-frame frame-polaroid tilt-right"><img src="images/21.jpg" alt="Memory 21"><span class="polaroid-caption">my heart 💓</span></div>
+                <div class="photo-frame frame-polaroid"><img src="images/22.jpg" alt="Memory 22"><span class="polaroid-caption">bubu 🥺</span></div>
+                <div class="photo-frame frame-polaroid tilt-left"><img src="images/23.jpg" alt="Memory 23"><span class="polaroid-caption">always 🌙</span></div>
+                <div class="photo-frame frame-polaroid"><img src="images/24.jpg" alt="Memory 24"><span class="polaroid-caption">forever 💍</span></div>
+            </div>
+        </section>
+
+        <!-- Cute GIF -->
+        <div class="gif-divider fade-in">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWxhYWc0ZWw5NjRqcjVjazE5c3BhZ3U5dXE5NTh2amFrZHJ2dDVocCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26FLdmIp6wJr91JAI/giphy.gif" alt="valentine gif" class="inline-gif">
+        </div>
+
+        <!-- VALENTINE QUESTION SECTION -->
+        <section class="valentine-section fade-in">
+            <div class="valentine-card" id="valentineCard">
+                <h2 class="valentine-title">Happy Valentine's Day My Love 💝</h2>
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm5jbTR4eGZlczNocmpuNnl2OGRvb3lpZDZ1OWgybjRtbGZxZzFydCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l3fZLMbuCOqJ82gec/giphy.gif" alt="valentine hearts" class="valentine-gif">
+                <p class="valentine-question" id="valentineQuestion">Will you be my forever? 💍</p>
+                <div class="valentine-buttons" id="valentineButtons">
+                    <button class="btn-yes" id="btnYes">Yes! 💕</button>
+                    <button class="btn-no" id="btnNo">No 😢</button>
+                </div>
+                <div class="valentine-yes-response" id="yesResponse" style="display:none;">
+                    <p class="yes-text">I KNEW IT! 🥳💕💖🎉✨</p>
+                    <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaG1jY3diMXN0YTBwOG44cTQ5eWgyZ2l3M3Fla2xra2hrMm05NHFlbiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0MYt5jPR6QX5pnqM/giphy.gif" alt="celebration gif" class="celebration-gif">
+                    <p class="forever-text">Forever & Always, You and Me 💗</p>
+                    <div class="confetti" id="confetti"></div>
+                </div>
+            </div>
+        </section>
+
+        
+
+        <!-- DATE TONIGHT - CUTE ENDING -->
+        <section class="date-tonight-section fade-in">
+            <div class="date-tonight-card">
+                <div class="date-tonight-hearts">💕 🌙 ✨ 💗</div>
+                <h2 class="date-tonight-title">You and me — date tonight?</h2>
+                <p class="date-tonight-ps">P.S. The answer is yes, hehe 💕</p>
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWI0ZjVzMmExcjlrdXI1N3Z0eXYxZ3AwZjlrcXV1MnBkMGh1ejhrZiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/EvYHKFMKeGd2Hximhx/giphy.gif" alt="cute date" class="date-tonight-gif">
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer fade-in">
+            <p class="footer-text">Made with all my love 💕</p>
+            <p class="footer-text small">— Your idiot who loves you endlessly 🥺</p>
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGFyZTR4Z2hkZDhiMnV4ZWUyM2Z5ZHNoam5vZjZ2NTZqZGt4dXA2bSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7TKoWXm3okO1kgHC/giphy.gif" alt="love gif" class="footer-gif">
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
