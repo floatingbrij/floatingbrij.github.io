@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinApp MCP — Playwright for Windows Desktop Apps</title>
+    <meta name="description" content="The most comprehensive MCP server for Windows desktop automation. 55 tools, smart caching, fuzzy search. Works with VS Code Copilot, Claude, Cursor, Windsurf.">
+    <meta name="author" content="Brijesharun Gurumurthy">
+    <meta property="og:title" content="WinApp MCP — Playwright for Windows Desktop Apps">
+    <meta property="og:description" content="Give AI agents eyes and hands on any Windows desktop application. 55 UI automation tools via the Model Context Protocol.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://brijesharun.com/winappmcp">
+    <meta property="og:image" content="https://raw.githubusercontent.com/floatingbrij/desktop-pilot-mcp/main/assets/icon.png">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/floatingbrij/desktop-pilot-mcp/main/assets/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+/* ─── Reset & Variables ─── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #030014;
+    --bg-card: rgba(255,255,255,0.03);
+    --bg-card-hover: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --accent-1: #6366f1;
+    --accent-2: #8b5cf6;
+    --accent-3: #a855f7;
+    --accent-4: #06b6d4;
+    --gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2), var(--accent-3));
+    --gradient-text: linear-gradient(135deg, var(--accent-4), var(--accent-1), var(--accent-3));
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --ease: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; }
+::selection { background: var(--accent-2); color: white; }
+a { color: inherit; text-decoration: none; }
+strong { color: #f1f5f9; font-weight: 600; }
+
+/* ─── Background ─── */
+#particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.gradient-orbs { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; animation: float 20s ease-in-out infinite; }
+.orb-1 { width: 600px; height: 600px; background: var(--accent-1); top: -200px; right: -200px; }
+.orb-2 { width: 500px; height: 500px; background: var(--accent-3); bottom: -150px; left: -150px; animation-delay: -7s; }
+.orb-3 { width: 400px; height: 400px; background: var(--accent-4); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -14s; opacity: 0.08; }
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -40px) scale(1.05); }
+    50% { transform: translate(-20px, 20px) scale(0.95); }
+    75% { transform: translate(15px, 30px) scale(1.02); }
+}
+
+/* ─── Container ─── */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+/* ─── Nav ─── */
+.nav { position: fixed; top: 0; left: 0; right: 0; height: 72px; z-index: 1000; transition: var(--ease); }
+.nav.scrolled { background: rgba(3,0,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+.nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.nav-back { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); transition: var(--ease); }
+.nav-back:hover { color: var(--text); }
+.nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; }
+.nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
+.nav-links { display: flex; gap: 6px; align-items: center; }
+.nav-link { padding: 8px 14px; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); border-radius: var(--radius-sm); transition: var(--ease); }
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-link-cta { background: var(--gradient); color: white !important; }
+.nav-link-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,0.3); background: var(--gradient); }
+
+/* ─── Hero ─── */
+.hero { min-height: 100vh; display: flex; align-items: center; position: relative; z-index: 1; padding: 120px 24px 80px; text-align: center; }
+.hero-content { max-width: 860px; margin: 0 auto; }
+.hero-icon { width: 120px; height: 120px; border-radius: 28px; margin: 0 auto 32px; box-shadow: 0 8px 40px rgba(99,102,241,0.25); }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: 100px; font-size: 0.8rem; font-weight: 500; color: var(--accent-4); margin-bottom: 24px; }
+.hero h1 { font-size: clamp(2.5rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 8px; }
+.hero h1 .gradient-text { background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-sub { font-size: clamp(1.1rem, 2.5vw, 1.35rem); color: var(--text-muted); max-width: 650px; margin: 0 auto 16px; font-weight: 400; }
+.hero-tagline { font-size: 1rem; color: var(--text-dim); margin-bottom: 40px; }
+.hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+
+/* ─── Buttons ─── */
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; font-family: var(--font); font-size: 0.9rem; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; border: none; white-space: nowrap; }
+.btn-primary { background: var(--gradient); color: white; box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.4); }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--border-hover); background: rgba(255,255,255,0.03); }
+.btn-sm { padding: 10px 20px; font-size: 0.82rem; border-radius: 10px; }
+
+/* ─── Stats bar ─── */
+.stats-bar { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-val { font-size: 2rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.stat-label { font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+
+/* ─── Sections ─── */
+.section { padding: 100px 0; position: relative; z-index: 1; }
+.section-alt { background: rgba(255,255,255,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.section-title { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin-bottom: 16px; text-align: center; }
+.section-desc { text-align: center; color: var(--text-muted); max-width: 600px; margin: 0 auto 56px; font-size: 1rem; }
+
+/* ─── Architecture ─── */
+.arch { padding: 40px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; max-width: 700px; margin: 0 auto 0; overflow-x: auto; }
+.arch-flow { display: flex; align-items: center; justify-content: center; gap: 12px; min-width: 480px; }
+.arch-node { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 28px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); min-width: 120px; }
+.arch-node-hl { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color: var(--accent-1); box-shadow: 0 0 30px rgba(99,102,241,0.1); }
+.arch-icon { font-size: 1.5rem; }
+.arch-arrow { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-family: var(--mono); font-size: 0.7rem; font-weight: 500; letter-spacing: 0.05em; }
+
+/* ─── Feature Cards (compact) ─── */
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.feature-card { padding: 28px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); transition: var(--ease); }
+.feature-card:hover { border-color: var(--border-hover); background: var(--bg-card-hover); transform: translateY(-3px); }
+.feature-icon { font-size: 1.6rem; margin-bottom: 14px; }
+.feature-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+.feature-card p { font-size: 0.84rem; color: var(--text-dim); line-height: 1.5; }
+
+/* ─── Tool Categories ─── */
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+.tool-category { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: var(--ease); }
+.tool-category:hover { border-color: var(--border-hover); }
+.tool-cat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.tool-cat-icon { font-size: 1.3rem; }
+.tool-cat-title { font-size: 0.95rem; font-weight: 600; }
+.tool-cat-count { font-family: var(--mono); font-size: 0.72rem; color: var(--accent-4); background: rgba(6,182,212,0.1); padding: 2px 8px; border-radius: 100px; margin-left: auto; }
+.tool-list { list-style: none; }
+.tool-list li { padding: 6px 0; font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.tool-list li:last-child { border-bottom: none; }
+.tool-name { font-family: var(--mono); font-size: 0.78rem; color: var(--accent-2); font-weight: 500; white-space: nowrap; }
+
+/* ─── Install Section ─── */
+.install-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.install-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: var(--ease); }
+.install-card:hover { border-color: var(--border-hover); }
+.install-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.install-logo { font-size: 1.4rem; }
+.install-name { font-weight: 600; font-size: 0.95rem; }
+.install-tag { font-family: var(--mono); font-size: 0.7rem; color: var(--accent-4); background: rgba(6,182,212,0.1); padding: 2px 8px; border-radius: 100px; margin-left: auto; }
+.install-desc { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px; }
+
+pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; overflow-x: auto; font-family: var(--mono); font-size: 0.78rem; color: var(--accent-4); line-height: 1.6; position: relative; }
+pre code { background: none; padding: 0; }
+.copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); cursor: pointer; transition: var(--ease); }
+.copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+/* ─── Comparison ─── */
+.comparison-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.84rem; min-width: 700px; }
+thead { background: rgba(99,102,241,0.08); }
+th { padding: 14px 16px; text-align: left; font-weight: 600; color: var(--text); border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child { padding-left: 24px; }
+td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-muted); }
+td:first-child { padding-left: 24px; color: var(--text-dim); font-size: 0.82rem; }
+tr:last-child td { border-bottom: none; }
+.check { color: #22c55e; font-weight: 600; }
+.cross { color: var(--text-dim); opacity: 0.4; }
+.highlight-col { background: rgba(99,102,241,0.04); color: var(--accent-1) !important; font-weight: 500; }
+
+/* ─── CTA ─── */
+.cta-section { text-align: center; padding: 100px 24px; position: relative; z-index: 1; }
+.cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 16px; }
+.cta-section p { color: var(--text-muted); max-width: 500px; margin: 0 auto 36px; font-size: 1rem; }
+.cta-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+.cta-link { font-size: 0.82rem; color: var(--text-dim); transition: var(--ease); }
+.cta-link:hover { color: var(--accent-4); }
+
+/* ─── Footer ─── */
+.footer { padding: 40px 0; text-align: center; position: relative; z-index: 1; border-top: 1px solid var(--border); }
+.footer p { font-size: 0.82rem; color: var(--text-dim); }
+.footer a { color: var(--accent-2); transition: var(--ease); }
+.footer a:hover { color: var(--accent-1); }
+
+/* ─── Reveal ─── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .hero-icon { width: 88px; height: 88px; border-radius: 22px; }
+    .hero h1 { font-size: 2.2rem; }
+    .stats-bar { gap: 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .install-grid { grid-template-columns: 1fr; }
+    .arch-flow { flex-direction: column; min-width: auto; }
+    .arch-arrow { transform: rotate(90deg); }
+    .section { padding: 70px 0; }
+    table { font-size: 0.78rem; }
+    th, td { padding: 10px 12px; }
+}
+
+@media (max-width: 480px) {
+    .hero-cta { flex-direction: column; align-items: center; }
+    .btn { width: 100%; justify-content: center; }
+}
+    </style>
+</head>
+<body>
+
+<!-- Background -->
+<canvas id="particles"></canvas>
+<div class="gradient-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+</div>
+
+<!-- Nav -->
+<nav class="nav" id="nav">
+    <div class="nav-inner">
+        <a href="https://brijesharun.com" class="nav-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            brijesharun.com
+        </a>
+        <a href="#" class="nav-logo">
+            <img src="https://raw.githubusercontent.com/floatingbrij/desktop-pilot-mcp/main/assets/icon.png" alt="WinApp MCP">
+            WinApp MCP
+        </a>
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#tools" class="nav-link">Tools</a>
+            <a href="#install" class="nav-link">Install</a>
+            <a href="#compare" class="nav-link">Compare</a>
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp" target="_blank" class="nav-link nav-link-cta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                GitHub
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-content">
+        <img src="https://raw.githubusercontent.com/floatingbrij/desktop-pilot-mcp/main/assets/icon.png" alt="WinApp MCP" class="hero-icon reveal">
+        <div class="hero-badge reveal">Windows &middot; MCP &middot; Open Source</div>
+        <h1 class="reveal">
+            <span class="gradient-text">Playwright</span> for<br>Windows Desktop Apps
+        </h1>
+        <p class="hero-sub reveal">
+            Give AI agents eyes and hands on <strong>any</strong> native Windows application.
+            Click buttons, fill forms, take screenshots, read UI trees — all through the Model Context Protocol.
+        </p>
+        <p class="hero-tagline reveal">Works with VS Code Copilot &middot; Claude &middot; Cursor &middot; Windsurf &middot; Cline</p>
+        <div class="hero-cta reveal">
+            <a href="#install" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Install Now
+            </a>
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp" target="_blank" class="btn btn-ghost">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                View Source
+            </a>
+        </div>
+        <div class="stats-bar reveal">
+            <div class="stat">
+                <div class="stat-val">55</div>
+                <div class="stat-label">MCP Tools</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val">10</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val">MIT</div>
+                <div class="stat-label">License</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val">5+</div>
+                <div class="stat-label">AI Clients</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section section-alt" id="arch">
+    <div class="container">
+        <h2 class="section-title reveal">How It Works</h2>
+        <p class="section-desc reveal">
+            A .NET 8 MCP server that uses <strong>FlaUI</strong> (UI Automation) to interact with any Windows app. Connects to AI assistants via the standard Model Context Protocol.
+        </p>
+        <div class="arch reveal">
+            <div class="arch-flow">
+                <div class="arch-node">
+                    <div class="arch-icon">🤖</div>
+                    <span>AI Assistant</span>
+                </div>
+                <div class="arch-arrow">
+                    <span>MCP</span>
+                    <svg width="40" height="12" viewBox="0 0 40 12"><line x1="0" y1="6" x2="35" y2="6" stroke="currentColor" stroke-width="2"/><polygon points="35,1 40,6 35,11" fill="currentColor"/></svg>
+                </div>
+                <div class="arch-node arch-node-hl">
+                    <div class="arch-icon">⚡</div>
+                    <span>WinApp MCP</span>
+                </div>
+                <div class="arch-arrow">
+                    <span>UIA3</span>
+                    <svg width="40" height="12" viewBox="0 0 40 12"><line x1="0" y1="6" x2="35" y2="6" stroke="currentColor" stroke-width="2"/><polygon points="35,1 40,6 35,11" fill="currentColor"/></svg>
+                </div>
+                <div class="arch-node">
+                    <div class="arch-icon">🖥️</div>
+                    <span>Windows App</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="section" id="features">
+    <div class="container">
+        <h2 class="section-title reveal">Why WinApp MCP</h2>
+        <p class="section-desc reveal">Built to cover every edge case in Windows desktop automation — from minimized windows to locked sessions.</p>
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">🛠️</div>
+                <h3>55 Tools</h3>
+                <p>Complete coverage — click, type, drag, form fill, screenshots, visual diff, grid access, event monitoring.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🔍</div>
+                <h3>Fuzzy Search</h3>
+                <p>Levenshtein-distance matching finds elements even with typos and partial names. No brittle selectors.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">⚡</div>
+                <h3>2-Tier Cache</h3>
+                <p>Descendant cache (2s TTL) + window cache (30s TTL) with automatic invalidation. Fast repeat lookups.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🪟</div>
+                <h3>Works Minimized</h3>
+                <p>WM_PRINT-based rendering captures screenshots even when the app window is minimized or behind others.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">📸</div>
+                <h3>Visual Testing</h3>
+                <p>Annotated screenshots with bounding boxes, pixel-diff comparison, and token-aware resizing for LLMs.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🎯</div>
+                <h3>All Frameworks</h3>
+                <p>WinUI3, WPF, WinForms, Win32, Electron, UWP — if it runs on Windows, WinApp MCP can automate it.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🔒</div>
+                <h3>Locked Sessions</h3>
+                <p>UIA pattern fallback keeps working even when the desktop is locked. Reports available operations.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">📡</div>
+                <h3>Event Monitoring</h3>
+                <p>Subscribe to focus, structure, and property change events. Watch UI state changes in real-time.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🧩</div>
+                <h3>Multi-Client</h3>
+                <p>One server, many clients. Works with VS Code Copilot, Claude Desktop, Cursor, Windsurf, and Cline.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- All Tools -->
+<section class="section section-alt" id="tools">
+    <div class="container">
+        <h2 class="section-title reveal">All 55 Tools</h2>
+        <p class="section-desc reveal">Organized into 10+ categories, covering the full spectrum of Windows UI automation.</p>
+        <div class="tools-grid">
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">🚀</span>
+                    <span class="tool-cat-title">App Lifecycle</span>
+                    <span class="tool-cat-count">5</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">launch_app</span> Launch by path</li>
+                    <li><span class="tool-name">attach_to_app</span> Attach by name</li>
+                    <li><span class="tool-name">attach_to_pid</span> Attach by PID</li>
+                    <li><span class="tool-name">close_app</span> Close tracked app</li>
+                    <li><span class="tool-name">list_apps</span> List tracked apps</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">🔎</span>
+                    <span class="tool-cat-title">Discovery</span>
+                    <span class="tool-cat-count">7</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">list_windows</span> App windows</li>
+                    <li><span class="tool-name">list_desktop_windows</span> All windows</li>
+                    <li><span class="tool-name">get_snapshot</span> UI tree</li>
+                    <li><span class="tool-name">get_focused_element</span> Focused el</li>
+                    <li><span class="tool-name">find_elements</span> Filter search</li>
+                    <li><span class="tool-name">find_all_elements</span> All matches</li>
+                    <li><span class="tool-name">find_elements_fuzzy</span> Fuzzy match</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">📖</span>
+                    <span class="tool-cat-title">Read & Inspect</span>
+                    <span class="tool-cat-count">5</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">read_element</span> Properties</li>
+                    <li><span class="tool-name">read_element_by_index</span> By index</li>
+                    <li><span class="tool-name">get_element_bounds</span> Bounds rect</li>
+                    <li><span class="tool-name">element_exists</span> Bool check</li>
+                    <li><span class="tool-name">get_all_values</span> All values</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">👆</span>
+                    <span class="tool-cat-title">Click & Interact</span>
+                    <span class="tool-cat-count">8</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">click_element</span> Click by id/name</li>
+                    <li><span class="tool-name">double_click_element</span> Double-click</li>
+                    <li><span class="tool-name">right_click_element</span> Right-click</li>
+                    <li><span class="tool-name">click_at_coordinates</span> Screen coords</li>
+                    <li><span class="tool-name">invoke_element</span> UIA invoke</li>
+                    <li><span class="tool-name">select_option</span> Dropdown select</li>
+                    <li><span class="tool-name">expand_collapse_element</span> Tree toggle</li>
+                    <li><span class="tool-name">drag_element</span> Drag &amp; drop</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">⌨️</span>
+                    <span class="tool-cat-title">Input</span>
+                    <span class="tool-cat-count">4</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">type_text</span> Type into field</li>
+                    <li><span class="tool-name">press_key</span> Single key</li>
+                    <li><span class="tool-name">press_key_combo</span> Key combo</li>
+                    <li><span class="tool-name">fill_form</span> Batch fill</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">⏳</span>
+                    <span class="tool-cat-title">Wait & Sync</span>
+                    <span class="tool-cat-count">4</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">wait_for_element</span> Appear wait</li>
+                    <li><span class="tool-name">wait_for_condition</span> Property wait</li>
+                    <li><span class="tool-name">wait_for_input_idle</span> Input idle</li>
+                    <li><span class="tool-name">release_all</span> Release keys</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">📸</span>
+                    <span class="tool-cat-title">Screenshots & Visual</span>
+                    <span class="tool-cat-count">5</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">take_screenshot</span> Capture PNG</li>
+                    <li><span class="tool-name">take_screenshot_optimized</span> LLM-sized</li>
+                    <li><span class="tool-name">annotate_screenshot</span> Bounding boxes</li>
+                    <li><span class="tool-name">screenshot_diff</span> Pixel diff</li>
+                    <li><span class="tool-name">get_tree_hash</span> Change detect</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">🪟</span>
+                    <span class="tool-cat-title">HWND Multi-Window</span>
+                    <span class="tool-cat-count">3</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">click_element_hwnd</span> Click by handle</li>
+                    <li><span class="tool-name">set_value_hwnd</span> Set by handle</li>
+                    <li><span class="tool-name">get_snapshot_hwnd</span> Snapshot handle</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">🧬</span>
+                    <span class="tool-cat-title">Advanced Patterns</span>
+                    <span class="tool-cat-count">6</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">get_grid_item</span> DataGrid cell</li>
+                    <li><span class="tool-name">find_item_by_property</span> Container find</li>
+                    <li><span class="tool-name">scroll_into_view</span> Scroll visible</li>
+                    <li><span class="tool-name">realize_virtualized_item</span> Load virtual</li>
+                    <li><span class="tool-name">scroll_element</span> Scroll within</li>
+                    <li><span class="tool-name">invalidate_cache</span> Clear cache</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">📡</span>
+                    <span class="tool-cat-title">Event Monitoring</span>
+                    <span class="tool-cat-count">3</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">start_event_monitor</span> Start watch</li>
+                    <li><span class="tool-name">stop_event_monitor</span> Stop watch</li>
+                    <li><span class="tool-name">get_event_log</span> Read events</li>
+                </ul>
+            </div>
+            <div class="tool-category reveal">
+                <div class="tool-cat-header">
+                    <span class="tool-cat-icon">🔧</span>
+                    <span class="tool-cat-title">Session Management</span>
+                    <span class="tool-cat-count">5</span>
+                </div>
+                <ul class="tool-list">
+                    <li><span class="tool-name">restore_window</span> Restore minimized</li>
+                    <li><span class="tool-name">check_session_status</span> Session check</li>
+                    <li><span class="tool-name">get_clipboard</span> Read clipboard</li>
+                    <li><span class="tool-name">hover_element</span> Mouse hover</li>
+                    <li><span class="tool-name">set_element_value</span> Set value</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Install -->
+<section class="section" id="install">
+    <div class="container">
+        <h2 class="section-title reveal">Install Anywhere</h2>
+        <p class="section-desc reveal">One MCP server, multiple ways to install. Pick your AI client and get started in seconds.</p>
+        <div class="install-grid">
+            <div class="install-card reveal">
+                <div class="install-header">
+                    <span class="install-logo">💜</span>
+                    <span class="install-name">VS Code + Copilot</span>
+                    <span class="install-tag">Recommended</span>
+                </div>
+                <p class="install-desc">Install from the VS Code Marketplace. Copilot auto-discovers the MCP server.</p>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>ext install BrijesharunG.winapp-mcp</code></pre>
+            </div>
+            <div class="install-card reveal">
+                <div class="install-header">
+                    <span class="install-logo">📦</span>
+                    <span class="install-name">npm / npx</span>
+                    <span class="install-tag">Universal</span>
+                </div>
+                <p class="install-desc">Run the server directly via npx — works with any MCP client.</p>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>npx winapp-mcp</code></pre>
+            </div>
+            <div class="install-card reveal">
+                <div class="install-header">
+                    <span class="install-logo">🧠</span>
+                    <span class="install-name">Claude Desktop</span>
+                </div>
+                <p class="install-desc">Add to your Claude config file:</p>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>{
+  "mcpServers": {
+    "winapp": {
+      "command": "npx",
+      "args": ["-y", "winapp-mcp"]
+    }
+  }
+}</code></pre>
+            </div>
+            <div class="install-card reveal">
+                <div class="install-header">
+                    <span class="install-logo">⚡</span>
+                    <span class="install-name">Cursor</span>
+                </div>
+                <p class="install-desc">Add to <code>.cursor/mcp.json</code>:</p>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>{
+  "mcpServers": {
+    "winapp": {
+      "command": "npx",
+      "args": ["-y", "winapp-mcp"]
+    }
+  }
+}</code></pre>
+            </div>
+            <div class="install-card reveal">
+                <div class="install-header">
+                    <span class="install-logo">🌊</span>
+                    <span class="install-name">Windsurf</span>
+                </div>
+                <p class="install-desc">Add to <code>~/.codeium/windsurf/mcp_config.json</code>:</p>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>{
+  "mcpServers": {
+    "winapp": {
+      "command": "npx",
+      "args": ["-y", "winapp-mcp"]
+    }
+  }
+}</code></pre>
+            </div>
+            <div class="install-card reveal">
+                <div class="install-header">
+                    <span class="install-logo">📥</span>
+                    <span class="install-name">VSIX (Offline)</span>
+                </div>
+                <p class="install-desc">Download the .vsix file from GitHub Releases:</p>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>code --install-extension winapp-mcp-1.7.0.vsix</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Comparison -->
+<section class="section section-alt" id="compare">
+    <div class="container">
+        <h2 class="section-title reveal">How It Compares</h2>
+        <p class="section-desc reveal">Side-by-side with other Windows desktop MCP servers.</p>
+        <div class="comparison-wrap reveal">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th class="highlight-col">WinApp MCP</th>
+                        <th>Windows-MCP</th>
+                        <th>uiautomation-mcp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Tools</td><td class="highlight-col"><strong>55</strong></td><td>~15</td><td>39</td></tr>
+                    <tr><td>UIA Library</td><td class="highlight-col">FlaUI</td><td>FlaUI</td><td>Raw COM</td></tr>
+                    <tr><td>Caching</td><td class="highlight-col"><span class="check">&#10003;</span> 2-tier</td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Fuzzy Search</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>HWND Targeting</td><td class="highlight-col"><span class="check">&#10003;</span> Full</td><td><span class="cross">&#10007;</span></td><td>Partial</td></tr>
+                    <tr><td>Event Monitoring</td><td class="highlight-col"><span class="check">&#10003;</span> 3 types</td><td><span class="cross">&#10007;</span></td><td>Focus only</td></tr>
+                    <tr><td>Grid Pattern</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="check">&#10003;</span></td></tr>
+                    <tr><td>Virtualization</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Screenshot Diff</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Batch Form Fill</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Token-aware Screenshots</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Drag &amp; Drop</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Minimized App Support</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Locked Session</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>VS Code Extension</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>npm Package</td><td class="highlight-col"><span class="check">&#10003;</span></td><td><span class="cross">&#10007;</span></td><td><span class="cross">&#10007;</span></td></tr>
+                    <tr><td>Multi-Client</td><td class="highlight-col"><span class="check">&#10003;</span> 5+</td><td>VS Code only</td><td><span class="cross">&#10007;</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2 class="reveal">Ready to automate<br><span style="background:var(--gradient-text);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Windows apps with AI</span>?</h2>
+        <p class="reveal">Open source, MIT licensed, and built for the MCP ecosystem.</p>
+        <div class="hero-cta reveal">
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp" target="_blank" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Star on GitHub
+            </a>
+            <a href="https://marketplace.visualstudio.com/items?itemName=BrijesharunG.winapp-mcp" target="_blank" class="btn btn-ghost">
+                VS Code Marketplace
+            </a>
+            <a href="https://www.npmjs.com/package/winapp-mcp" target="_blank" class="btn btn-ghost">
+                npm Package
+            </a>
+        </div>
+        <div class="cta-links reveal">
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp/releases" target="_blank" class="cta-link">Releases</a>
+            <span style="color:var(--text-dim);">&middot;</span>
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp/blob/main/CONTRIBUTING.md" target="_blank" class="cta-link">Contributing</a>
+            <span style="color:var(--text-dim);">&middot;</span>
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp/issues" target="_blank" class="cta-link">Issues</a>
+            <span style="color:var(--text-dim);">&middot;</span>
+            <a href="https://github.com/floatingbrij/desktop-pilot-mcp/blob/main/LICENSE" target="_blank" class="cta-link">MIT License</a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>Built by <a href="https://brijesharun.com">Brijesharun G</a> &middot; <a href="https://github.com/floatingbrij" target="_blank">@floatingbrij</a></p>
+    </div>
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Particles ──
+    var canvas = document.getElementById('particles');
+    if (canvas) {
+        var ctx = canvas.getContext('2d');
+        var particles = [];
+        var mouse = { x: null, y: null };
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        function create() {
+            var count = Math.min(Math.floor(window.innerWidth / 18), 60);
+            particles = [];
+            for (var i = 0; i < count; i++) {
+                particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, r: Math.random()*1.5+0.5, a: Math.random()*0.4+0.1 });
+            }
+        }
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(139,92,246,' + p.a + ')'; ctx.fill();
+                for (var j = i+1; j < particles.length; j++) {
+                    var q = particles[j], dx = p.x-q.x, dy = p.y-q.y, dist = Math.sqrt(dx*dx+dy*dy);
+                    if (dist < 120) { ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.strokeStyle = 'rgba(99,102,241,' + (0.06*(1-dist/120)) + ')'; ctx.lineWidth = 0.5; ctx.stroke(); }
+                }
+                if (mouse.x !== null) { var dx2 = p.x-mouse.x, dy2 = p.y-mouse.y, d2 = Math.sqrt(dx2*dx2+dy2*dy2); if (d2 < 150) { var f = (150-d2)/150; p.x += (dx2/d2)*f*0.8; p.y += (dy2/d2)*f*0.8; } }
+            }
+            requestAnimationFrame(draw);
+        }
+        resize(); create(); draw();
+        window.addEventListener('resize', function() { resize(); create(); });
+        document.addEventListener('mousemove', function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+        document.addEventListener('mouseleave', function() { mouse.x = null; mouse.y = null; });
+    }
+
+    // ── Scroll nav ──
+    var nav = document.getElementById('nav');
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 50); });
+
+    // ── Reveal ──
+    var reveals = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(e) { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+        reveals.forEach(function(el) { observer.observe(el); });
+    } else {
+        reveals.forEach(function(el) { el.classList.add('visible'); });
+    }
+})();
+
+// ── Copy button ──
+function copyCode(btn) {
+    var pre = btn.parentElement;
+    var code = pre.querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+    });
+}
+</script>
+</body>
+</html>
