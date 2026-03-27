@@ -187,23 +187,51 @@ tr:last-child td { border-bottom: none; }
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
     .nav-links { display: none; }
-    .hero { padding: 100px 24px 60px; }
+    .hero { padding: 100px 16px 60px; }
     .hero-icon { width: 88px; height: 88px; border-radius: 22px; }
     .hero h1 { font-size: 2.2rem; }
-    .stats-bar { gap: 24px; }
+    .stats-bar { gap: 20px; }
+    .stat-val { font-size: 1.6rem; }
     .features-grid { grid-template-columns: 1fr; }
     .tools-grid { grid-template-columns: 1fr; }
     .install-grid { grid-template-columns: 1fr; }
+    .arch { padding: 24px 16px; }
     .arch-flow { flex-direction: column; min-width: auto; }
     .arch-arrow { transform: rotate(90deg); }
-    .section { padding: 70px 0; }
-    table { font-size: 0.78rem; }
-    th, td { padding: 10px 12px; }
+    .arch-node { padding: 14px 20px; min-width: auto; width: 100%; }
+    .section { padding: 60px 0; }
+    .container { padding: 0 16px; }
+    table { font-size: 0.75rem; }
+    th, td { padding: 8px 10px; }
+    pre { font-size: 0.72rem; padding: 12px 14px; word-break: break-all; }
+    .tool-name { white-space: normal; word-break: break-all; }
+    .tool-list li { flex-wrap: wrap; }
+    .comparison-wrap { margin: 0 -16px; border-radius: 0; border-left: none; border-right: none; }
+    .cta-section { padding: 70px 16px; }
+    .cta-section h2 { font-size: 1.8rem; }
+    .install-header { flex-wrap: wrap; gap: 8px; }
+    .install-tag { margin-left: 0; }
+    .hero-sub { font-size: 1rem; }
+    .section-desc { font-size: 0.9rem; }
+    .nav-inner { padding: 0 16px; }
+    .nav-logo { font-size: 0.95rem; }
+    .nav-back { font-size: 0.78rem; }
 }
 
 @media (max-width: 480px) {
     .hero-cta { flex-direction: column; align-items: center; }
     .btn { width: 100%; justify-content: center; }
+    .hero h1 { font-size: 1.8rem; }
+    .hero-tagline { font-size: 0.82rem; }
+    .stats-bar { gap: 16px; }
+    .stat-val { font-size: 1.4rem; }
+    .stat-label { font-size: 0.7rem; }
+    .feature-card { padding: 20px; }
+    .tool-category { padding: 20px; }
+    .install-card { padding: 20px; }
+    pre { font-size: 0.68rem; padding: 10px 12px; }
+    .section-title { font-size: 1.3rem; }
+    .cta-section h2 { font-size: 1.5rem; }
 }
     </style>
 </head>
@@ -613,7 +641,7 @@ tr:last-child td { border-bottom: none; }
                     <span class="install-name">VSIX (Offline)</span>
                 </div>
                 <p class="install-desc">Download the .vsix file from GitHub Releases:</p>
-                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>code --install-extension winapp-mcp-1.7.0.vsix</code></pre>
+                <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>code --install-extension winapp-mcp-2.0.0.vsix</code></pre>
             </div>
         </div>
     </div>
