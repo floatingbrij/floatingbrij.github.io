@@ -101,12 +101,13 @@
     }
 
     // ─── Konami code easter egg ───
-    var konamiSequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // ↑↑↓↓←→←→BA
+    var konamiSequence = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     var konamiIndex = 0;
     var konamiActivated = false;
     document.addEventListener('keydown', function (e) {
         if (konamiActivated) return;
-        if (e.keyCode === konamiSequence[konamiIndex]) {
+        var key = e.key;
+        if (key === konamiSequence[konamiIndex]) {
             konamiIndex++;
             if (konamiIndex === konamiSequence.length) {
                 konamiActivated = true;
@@ -114,6 +115,10 @@
             }
         } else {
             konamiIndex = 0;
+            // Check if the pressed key starts a new sequence
+            if (key === konamiSequence[0]) {
+                konamiIndex = 1;
+            }
         }
     });
 

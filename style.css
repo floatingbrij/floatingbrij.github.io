@@ -27,8 +27,8 @@
     --space-sm: 8px;
     --space-md: 16px;
     --space-lg: 24px;
-    --space-xl: 48px;
-    --space-2xl: 64px;
+    --space-xl: 36px;
+    --space-2xl: 48px;
 
     --max-w: 1100px;
 
@@ -216,11 +216,11 @@ strong {
 /* ─── Hero ─── */
 
 .hero {
-    min-height: 90vh;
+    min-height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 100px clamp(24px, 5vw, 48px) 60px;
+    padding: 120px clamp(24px, 5vw, 48px) var(--space-xl);
     max-width: var(--max-w);
     perspective: 800px;
 }
@@ -232,7 +232,7 @@ strong {
     line-height: 0.92;
     letter-spacing: -0.04em;
     color: var(--text);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
     transform-style: preserve-3d;
     will-change: transform;
     transition: transform 0.15s ease-out;
@@ -258,20 +258,21 @@ strong {
 
 .hero-intro {
     max-width: 540px;
+    margin-top: var(--space-sm);
 }
 
 .hero-lead {
     font-size: clamp(1.05rem, 1.8vw, 1.3rem);
     color: var(--text-secondary);
     line-height: 1.55;
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
 }
 
 .hero-status {
     font-size: 0.9rem;
     color: var(--text-secondary);
     line-height: 1.7;
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
 }
 
 .hero-status a {
@@ -338,7 +339,7 @@ section {
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
 }
 
 /* ─── Featured Project ─── */
@@ -346,7 +347,7 @@ section {
 .project-featured {
     border-top: 2px solid var(--accent);
     padding-top: var(--space-lg);
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-lg);
     transition: border-color 0.3s ease;
 }
 
@@ -382,7 +383,7 @@ section {
 .project-subtitle {
     font-size: 1.05rem;
     color: var(--text-secondary);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
     transition: transform 0.3s var(--ease-out-expo);
 }
 
@@ -390,7 +391,7 @@ section {
     color: var(--text-secondary);
     max-width: 62ch;
     line-height: 1.7;
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
 }
 
 .project-tech {
@@ -566,7 +567,7 @@ section {
 .skills-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-xl) var(--space-lg);
+    gap: var(--space-lg) var(--space-lg);
 }
 
 .skill-group h3 {
@@ -592,7 +593,7 @@ section {
 
 .contact-text {
     color: var(--text-secondary);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
     max-width: 44ch;
 }
 
@@ -617,7 +618,7 @@ section {
 /* ─── Footer ─── */
 
 .footer {
-    padding: var(--space-xl) clamp(24px, 5vw, 48px);
+    padding: var(--space-lg) clamp(24px, 5vw, 48px);
     border-top: 1px solid var(--border);
 }
 
@@ -777,7 +778,7 @@ section {
     }
 
     .hero {
-        min-height: 85vh;
+        min-height: auto;
         padding-top: 100px;
     }
 

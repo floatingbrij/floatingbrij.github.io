@@ -1012,12 +1012,12 @@ tbody tr:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); 
     }
 
     // ─── Konami code easter egg ───
-    var konamiSeq = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+    var konamiSeq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     var ki = 0;
     var konamiDone = false;
     document.addEventListener('keydown', function (e) {
         if (konamiDone) return;
-        if (e.keyCode === konamiSeq[ki]) {
+        if (e.key === konamiSeq[ki]) {
             ki++;
             if (ki === konamiSeq.length) {
                 konamiDone = true;
@@ -1034,7 +1034,10 @@ tbody tr:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); 
                     setTimeout(function () { t.remove(); }, 500);
                 }, 4000);
             }
-        } else { ki = 0; }
+        } else {
+            ki = 0;
+            if (e.key === konamiSeq[0]) ki = 1;
+        }
     });
 })();
 
