@@ -3,428 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brijesharun G — Agentic AI Engineer</title>
-    <meta name="description" content="Agentic AI Engineer building WinApp MCP — Playwright for Windows Desktop Apps. C#, .NET, MCP Protocol.">
+    <title>Brijesharun Gurumurthy</title>
+    <meta name="description" content="Software engineer building tools that give AI agents control over Windows desktop applications. Creator of WinApp MCP. MTS at Zoho Corporation.">
     <meta name="author" content="Brijesharun Gurumurthy">
-    <meta property="og:title" content="Brijesharun G — Agentic AI Engineer">
-    <meta property="og:description" content="Building the tools that give AI agents eyes and hands on Windows desktop applications.">
+    <meta property="og:title" content="Brijesharun Gurumurthy">
+    <meta property="og:description" content="Software engineer building tools for AI agents on Windows desktop. Creator of WinApp MCP.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://brijesharun.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Animated Background -->
-    <canvas id="particles"></canvas>
-    <div class="gradient-orbs">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
 
-    <!-- Navigation -->
-    <nav class="nav" id="nav">
-        <div class="nav-inner">
-            <a href="#" class="nav-logo">
-                <span class="logo-bracket">&lt;</span>brij<span class="logo-bracket"> /&gt;</span>
-            </a>
-            <div class="nav-links" id="navLinks">
-                <a href="#about" class="nav-link">About</a>
-                <a href="#featured" class="nav-link">Project</a>
-                <a href="#experience" class="nav-link">Experience</a>
-                <a href="#skills" class="nav-link">Skills</a>
-                <a href="#contact" class="nav-link">Contact</a>
-            </div>
-            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </nav>
+    <header class="header" id="header">
+        <a href="/" class="wordmark">brij</a>
+        <nav class="nav" id="nav">
+            <a href="#work">Work</a>
+            <a href="#experience">Experience</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+            <span></span><span></span>
+        </button>
+    </header>
 
-    <!-- Hero -->
-    <section class="hero" id="hero">
-        <div class="hero-content">
-            <div class="hero-badge reveal">
-                <span class="badge-dot"></span>
-                Open to opportunities
-            </div>
-            <h1 class="hero-name reveal">
-                <span class="hero-greeting">Hi, I'm</span>
-                <span class="hero-name-text">Brijesharun<span class="accent-dot">.</span></span>
+    <main>
+        <section class="hero">
+            <h1 class="hero-name" aria-label="Brijesharun Gurumurthy">
+                <span class="line">Brijesharun</span>
+                <span class="line">Gurumurthy<span class="cursor" aria-hidden="true"></span></span>
             </h1>
-            <p class="hero-tagline reveal">
-                I build the tools that give <span class="gradient-text">AI agents</span> eyes and hands on <span class="gradient-text">Windows desktop</span> applications.
-            </p>
-            <div class="hero-meta reveal">
-                <span class="meta-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    Chennai, India
-                </span>
-                <span class="meta-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                    Zoho Corporation
-                </span>
-                <span class="meta-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    Agentic AI Engineer
-                </span>
+            <div class="hero-intro">
+                <p class="hero-lead">Software engineer building tools that give AI agents control over Windows desktop applications.</p>
+                <p class="hero-status">MTS at <strong>Zoho Corporation</strong>, shipping WinUI 3 apps to 15K+ users. Creator of <a href="/winappmcp">WinApp MCP</a>. Pursuing M.Tech in Data Science at <strong>SRM</strong>.</p>
+                <p class="hero-location">Chennai, India</p>
             </div>
-            <div class="hero-cta reveal">
-                <a href="/winappmcp" class="btn btn-primary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    View WinApp MCP
-                </a>
-                <a href="#contact" class="btn btn-ghost">
-                    Get in touch
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </a>
-            </div>
-        </div>
-        <div class="hero-scroll">
-            <div class="scroll-line"></div>
-        </div>
-    </section>
+        </section>
 
-    <!-- About -->
-    <section class="section" id="about">
-        <div class="container">
-            <h2 class="section-title reveal">
-                <span class="section-number">01.</span> About Me
-            </h2>
-            <div class="about-grid">
-                <div class="about-text reveal">
-                    <p>
-                        I'm a software engineer at <strong>Zoho Corporation</strong> building production Windows applications that serve <strong>15,000+ users</strong>. My expertise spans C#, .NET, WinUI, and the full Windows platform stack.
-                    </p>
-                    <p>
-                        Outside work, I'm passionate about the <strong>agentic AI</strong> space — specifically building the infrastructure that enables AI assistants to interact with the physical desktop. This led me to build <strong>WinApp MCP</strong>, the most comprehensive Windows desktop automation MCP server available today.
-                    </p>
-                    <p>
-                        Before software engineering, I was deep into <strong>cybersecurity</strong> — competing in national-level CTF tournaments and placing <strong>2nd at InCTF Nationals 2022</strong>, India's premier cybersecurity competition.
-                    </p>
+        <hr class="divider">
+
+        <section class="work" id="work">
+            <h2 class="section-label reveal">Projects</h2>
+
+            <article class="project-featured reveal">
+                <div class="project-head">
+                    <span class="project-tag">Open Source · MIT License</span>
                 </div>
-                <div class="about-stats reveal">
-                    <div class="stat-card">
-                        <div class="stat-number" data-count="55">0</div>
-                        <div class="stat-label">MCP Tools Built</div>
+                <h3 class="project-title"><a href="/winappmcp">WinApp MCP</a></h3>
+                <p class="project-subtitle">Playwright for Windows Desktop Apps</p>
+                <p class="project-desc">An MCP server that gives AI assistants like GitHub Copilot, Claude, and ChatGPT complete control over any native Windows application. 55 UI automation tools, smart caching, fuzzy element matching, and support for minimized windows — it goes deeper than any other Windows desktop automation MCP available.</p>
+                <div class="project-tech">C# · .NET 10 · FlaUI · MCP Protocol · UI Automation</div>
+                <div class="project-actions">
+                    <a href="/winappmcp" class="link-arrow">View project</a>
+                    <a href="https://github.com/floatingbrij/desktop-pilot-mcp" target="_blank" rel="noopener" class="link-arrow">GitHub</a>
+                </div>
+            </article>
+
+            <div class="project-grid">
+                <article class="project reveal">
+                    <h3><a href="https://github.com/floatingbrij/legacy-desktop-migration-llm" target="_blank" rel="noopener">Legacy Desktop Migration LLM</a></h3>
+                    <p>Multi-agent LLM framework for automating legacy desktop application migration. Orchestrates specialized AI agents for code analysis, UI mapping, and migration planning.</p>
+                    <div class="project-tech">Python · LangChain · LangGraph · Azure OpenAI</div>
+                </article>
+                <article class="project reveal">
+                    <h3><a href="https://github.com/floatingbrij/hymn" target="_blank" rel="noopener">Hymn</a></h3>
+                    <p>Collaborative music streaming platform with real-time synchronized playback across users. Room-based sessions, live chat, and responsive UI.</p>
+                    <div class="project-tech">React · Node.js · Socket.IO · Firebase</div>
+                </article>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <section class="experience" id="experience">
+            <h2 class="section-label reveal">Experience</h2>
+            <div class="exp-list">
+                <div class="exp-item reveal">
+                    <div class="exp-when">Jan 2024 — Present</div>
+                    <div class="exp-what">
+                        <h3>Member Technical Staff</h3>
+                        <p class="exp-where">Zoho Corporation · Windows App Development</p>
+                        <p>Architecting WinUI 3/C# desktop applications for Zoho Finance products serving 15,000+ enterprise users. Built custom Roslyn code analyzers to enforce coding standards. Optimized startup time, memory usage, and rendering performance.</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" data-count="15000" data-suffix="+">0</div>
-                        <div class="stat-label">Users Served</div>
+                </div>
+                <div class="exp-item reveal">
+                    <div class="exp-when">Jan 2023 — Jan 2024</div>
+                    <div class="exp-what">
+                        <h3>Project Trainee</h3>
+                        <p class="exp-where">Zoho Corporation</p>
+                        <p>Windows platform development. Contributed to desktop application features using C#, WinUI 3, and XAML. Learned MVVM architecture and the .NET ecosystem.</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" data-count="3" data-suffix="+">0</div>
-                        <div class="stat-label">Years in Industry</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-label">2nd — InCTF Nationals</div>
+                </div>
+                <div class="exp-item reveal">
+                    <div class="exp-when">Apr 2021 — Jan 2023</div>
+                    <div class="exp-what">
+                        <h3>Core Team Member</h3>
+                        <p class="exp-where">Team 1nf1n1ty · SASTRA University</p>
+                        <p>Cybersecurity research and CTF competitions. Specialized in cryptography, forensics, and reverse engineering. 2nd Place at InCTF Nationals 2022 — India's premier cybersecurity competition.</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Featured Project -->
-    <section class="section section-dark" id="featured">
-        <div class="container">
-            <h2 class="section-title reveal">
-                <span class="section-number">02.</span> Featured Project
-            </h2>
-            <div class="featured-project reveal">
-                <div class="featured-header">
-                    <div class="featured-label">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                        Open Source · MIT License
-                    </div>
-                    <a href="/winappmcp" class="featured-github" title="View product page">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    </a>
-                    <a href="https://github.com/floatingbrij/desktop-pilot-mcp" target="_blank" rel="noopener" class="featured-github" title="View on GitHub">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    </a>
-                </div>
-                <h3 class="featured-name">
-                    WinApp MCP
-                    <span class="featured-subtitle">— Playwright for Windows Desktop Apps</span>
-                </h3>
-                <p class="featured-desc">
-                    An MCP server that gives AI assistants like GitHub Copilot, Claude, and ChatGPT complete control over any native Windows application. With 55 UI automation tools, smart caching, fuzzy element matching, and support for minimized windows — it goes deeper than any other Windows desktop automation MCP available.
-                </p>
-                <div class="featured-architecture">
-                    <div class="arch-flow">
-                        <div class="arch-node">
-                            <div class="arch-icon">🤖</div>
-                            <span>AI Assistant</span>
-                        </div>
-                        <div class="arch-arrow">
-                            <span>MCP</span>
-                            <svg width="40" height="12" viewBox="0 0 40 12"><line x1="0" y1="6" x2="35" y2="6" stroke="currentColor" stroke-width="2"/><polygon points="35,1 40,6 35,11" fill="currentColor"/></svg>
-                        </div>
-                        <div class="arch-node arch-node-highlight">
-                            <div class="arch-icon">⚡</div>
-                            <span>WinApp MCP</span>
-                        </div>
-                        <div class="arch-arrow">
-                            <span>UIA</span>
-                            <svg width="40" height="12" viewBox="0 0 40 12"><line x1="0" y1="6" x2="35" y2="6" stroke="currentColor" stroke-width="2"/><polygon points="35,1 40,6 35,11" fill="currentColor"/></svg>
-                        </div>
-                        <div class="arch-node">
-                            <div class="arch-icon">🖥️</div>
-                            <span>Windows App</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="featured-features">
-                    <div class="feature-card">
-                        <div class="feature-icon">🛠️</div>
-                        <h4>55 Tools</h4>
-                        <p>Complete UI automation — click, type, drag, fill forms, screenshots, visual diff</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🔍</div>
-                        <h4>Smart Search</h4>
-                        <p>Fuzzy matching with Levenshtein distance — finds elements even with typos</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h4>2-Tier Cache</h4>
-                        <p>Descendant cache (2s TTL) + window cache (30s TTL) with auto-invalidation</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🪟</div>
-                        <h4>Works Minimized</h4>
-                        <p>WM_PRINT-based rendering — captures screenshots even when minimized or locked</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">📸</div>
-                        <h4>Visual Testing</h4>
-                        <p>Annotated screenshots with bounding boxes and pixel-diff comparison</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🎯</div>
-                        <h4>All Frameworks</h4>
-                        <p>Works with WinUI3, WPF, WinForms, Win32, Electron — any Windows app</p>
-                    </div>
-                </div>
-                <div class="featured-tech">
-                    <span class="tech-tag">C#</span>
-                    <span class="tech-tag">.NET 10</span>
-                    <span class="tech-tag">FlaUI</span>
-                    <span class="tech-tag">MCP 1.1.0</span>
-                    <span class="tech-tag">UIA3</span>
-                    <span class="tech-tag">VS Code Extension</span>
-                    <span class="tech-tag">Built with GitHub Copilot</span>
-                </div>
-            </div>
-        </div>
-    </section>
+        <hr class="divider">
 
-    <!-- Experience -->
-    <section class="section" id="experience">
-        <div class="container">
-            <h2 class="section-title reveal">
-                <span class="section-number">03.</span> Experience
-            </h2>
-            <div class="timeline">
-                <div class="timeline-item reveal">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <div>
-                                <h3 class="timeline-role">Member Technical Staff</h3>
-                                <p class="timeline-company">Zoho Corporation — Windows App Development</p>
-                            </div>
-                            <span class="timeline-date">Jan 2023 — Present</span>
-                        </div>
-                        <ul class="timeline-details">
-                            <li>Building Windows apps for Zoho Finance (Books, Invoice, Billing) serving <strong>15,000+ users</strong></li>
-                            <li>Developing production applications with <strong>C#, WinUI, .NET, MVVM</strong> architecture</li>
-                            <li>Built custom <strong>Roslyn code analyzers</strong> to enforce coding standards</li>
-                            <li>Optimized application startup time, memory usage, and rendering performance</li>
-                        </ul>
+        <section class="education">
+            <h2 class="section-label reveal">Education</h2>
+            <div class="edu-list">
+                <div class="edu-item reveal">
+                    <span class="edu-when">2024 — 2026</span>
+                    <div>
+                        <h3>M.Tech in Data Science</h3>
+                        <p>SRM Institute of Science and Technology</p>
                     </div>
                 </div>
-                <div class="timeline-item reveal">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <div>
-                                <h3 class="timeline-role">Future Ready Talent Intern</h3>
-                                <p class="timeline-company">Microsoft</p>
-                            </div>
-                            <span class="timeline-date">Jan 2022 — Jul 2022</span>
-                        </div>
-                        <ul class="timeline-details">
-                            <li>Developed and deployed a full-stack web application using <strong>Flask</strong></li>
-                            <li>Hosted on <strong>Azure Web App Service</strong> with CI/CD pipelines</li>
-                            <li>Gained hands-on experience with Azure cloud services</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="timeline-item reveal">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                        <div class="timeline-header">
-                            <div>
-                                <h3 class="timeline-role">Core Team Member</h3>
-                                <p class="timeline-company">Team 1nf1n1ty — Cybersecurity Team, SASTRA University</p>
-                            </div>
-                            <span class="timeline-date">Apr 2021 — Jan 2023</span>
-                        </div>
-                        <ul class="timeline-details">
-                            <li>Led cybersecurity research and competed in <strong>national-level CTF tournaments</strong></li>
-                            <li>Specialized in <strong>cryptography, forensics, and reverse engineering</strong></li>
-                            <li>🏆 <strong>2nd Place — InCTF Nationals 2022</strong> (India's premier cybersecurity CTF)</li>
-                        </ul>
+                <div class="edu-item reveal">
+                    <span class="edu-when">2019 — 2023</span>
+                    <div>
+                        <h3>B.Tech in Computer Science & Engineering</h3>
+                        <p>SASTRA University</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Skills -->
-    <section class="section section-dark" id="skills">
-        <div class="container">
-            <h2 class="section-title reveal">
-                <span class="section-number">04.</span> Tech Stack
-            </h2>
-            <div class="skills-grid">
-                <div class="skill-group reveal">
-                    <h3 class="skill-group-title">
-                        <span class="skill-icon">🤖</span> Agentic AI & MCP
-                    </h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag skill-tag-primary">MCP Protocol</span>
-                        <span class="skill-tag skill-tag-primary">FlaUI</span>
-                        <span class="skill-tag skill-tag-primary">UI Automation (UIA3)</span>
-                        <span class="skill-tag skill-tag-primary">Windows Automation</span>
-                    </div>
+        <hr class="divider">
+
+        <section class="skills-section">
+            <h2 class="section-label reveal">Tech</h2>
+            <div class="skills-row reveal">
+                <div class="skill-group">
+                    <h3>Agentic AI</h3>
+                    <p>MCP Protocol · FlaUI · UI Automation · LangChain · LangGraph · Azure OpenAI</p>
                 </div>
-                <div class="skill-group reveal">
-                    <h3 class="skill-group-title">
-                        <span class="skill-icon">💻</span> Languages & Frameworks
-                    </h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">C#</span>
-                        <span class="skill-tag">.NET 10</span>
-                        <span class="skill-tag">Python</span>
-                        <span class="skill-tag">JavaScript</span>
-                        <span class="skill-tag">TypeScript</span>
-                        <span class="skill-tag">Flask</span>
-                    </div>
+                <div class="skill-group">
+                    <h3>Windows Platform</h3>
+                    <p>C# · .NET · WinUI 3 · WPF · XAML · MVVM · Win32 API · Roslyn Analyzers</p>
                 </div>
-                <div class="skill-group reveal">
-                    <h3 class="skill-group-title">
-                        <span class="skill-icon">🪟</span> Windows Platform
-                    </h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">WinUI 3</span>
-                        <span class="skill-tag">WPF</span>
-                        <span class="skill-tag">XAML</span>
-                        <span class="skill-tag">MVVM</span>
-                        <span class="skill-tag">Win32 API</span>
-                        <span class="skill-tag">Roslyn Analyzers</span>
-                    </div>
+                <div class="skill-group">
+                    <h3>Full Stack</h3>
+                    <p>TypeScript · React · Node.js · Express · Socket.IO · Firebase · Python · Flask</p>
                 </div>
-                <div class="skill-group reveal">
-                    <h3 class="skill-group-title">
-                        <span class="skill-icon">☁️</span> Cloud & Tools
-                    </h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">Azure</span>
-                        <span class="skill-tag">Git</span>
-                        <span class="skill-tag">VS Code</span>
-                        <span class="skill-tag">GitHub Actions</span>
-                        <span class="skill-tag">VS Code Extensions</span>
-                    </div>
-                </div>
-                <div class="skill-group reveal">
-                    <h3 class="skill-group-title">
-                        <span class="skill-icon">🔐</span> Cybersecurity
-                    </h3>
-                    <div class="skill-tags">
-                        <span class="skill-tag">Cryptography</span>
-                        <span class="skill-tag">Forensics</span>
-                        <span class="skill-tag">Reverse Engineering</span>
-                        <span class="skill-tag">CTF Competitions</span>
-                    </div>
+                <div class="skill-group">
+                    <h3>Tools & Cloud</h3>
+                    <p>Azure · Docker · Git · GitHub Actions · VS Code Extensions</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Education -->
-    <section class="section" id="education">
-        <div class="container">
-            <h2 class="section-title reveal">
-                <span class="section-number">05.</span> Education
-            </h2>
-            <div class="edu-card reveal">
-                <div class="edu-icon">🎓</div>
-                <div class="edu-content">
-                    <h3>B.Tech — Computer Science & Engineering</h3>
-                    <p class="edu-school">Shanmugha Arts, Science, Technology and Research Academy (SASTRA)</p>
-                    <p class="edu-date">2019 — 2023</p>
-                </div>
-            </div>
-        </div>
-    </section>
+        <hr class="divider">
 
-    <!-- Contact -->
-    <section class="section section-dark" id="contact">
-        <div class="container container-narrow">
-            <h2 class="section-title reveal">
-                <span class="section-number">06.</span> Get In Touch
-            </h2>
-            <p class="contact-text reveal">
-                I'm always open to interesting conversations about agentic AI, MCP, Windows desktop development, or cybersecurity. Whether you have a question, want to collaborate, or just want to say hi — feel free to reach out.
-            </p>
+        <section class="contact" id="contact">
+            <h2 class="section-label reveal">Contact</h2>
+            <p class="contact-text reveal">Always open to conversations about agentic AI, developer tooling, or Windows platform work.</p>
             <div class="contact-links reveal">
-                <a href="mailto:brijesharun@gmail.com" class="contact-link">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    <span>brijesharun@gmail.com</span>
-                </a>
-                <a href="https://github.com/floatingbrij" target="_blank" rel="noopener" class="contact-link">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    <span>github.com/floatingbrij</span>
-                </a>
-                <a href="https://linkedin.com/in/floatingbrij" target="_blank" rel="noopener" class="contact-link">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    <span>linkedin.com/in/floatingbrij</span>
-                </a>
-                <a href="https://twitter.com/floatingbrij" target="_blank" rel="noopener" class="contact-link">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                    <span>@floatingbrij</span>
-                </a>
+                <a href="mailto:brijesharun@gmail.com">brijesharun@gmail.com</a>
+                <a href="https://github.com/floatingbrij" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://linkedin.com/in/floatingbrij" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="https://twitter.com/floatingbrij" target="_blank" rel="noopener">X</a>
             </div>
-            <a href="mailto:brijesharun@gmail.com" class="btn btn-primary btn-large reveal">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                Say Hello
-            </a>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <p class="footer-text">
-                Designed & built by <strong>Brijesharun G</strong>
-            </p>
-            <div class="footer-links">
-                <a href="https://github.com/floatingbrij" target="_blank" rel="noopener" aria-label="GitHub">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                </a>
-                <a href="https://linkedin.com/in/floatingbrij" target="_blank" rel="noopener" aria-label="LinkedIn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                </a>
-                <a href="https://twitter.com/floatingbrij" target="_blank" rel="noopener" aria-label="Twitter/X">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-            </div>
-        </div>
+        <p>Brijesharun Gurumurthy · 2025</p>
     </footer>
 
     <script src="script.js"></script>
