@@ -32,16 +32,51 @@
         </button>
     </header>
 
+    <!-- Vertical link strip -->
+    <aside class="side-links">
+        <a href="https://github.com/floatingbrij" target="_blank" rel="noopener" aria-label="GitHub">gh</a>
+        <a href="https://linkedin.com/in/floatingbrij" target="_blank" rel="noopener" aria-label="LinkedIn">li</a>
+        <a href="https://twitter.com/floatingbrij" target="_blank" rel="noopener" aria-label="X">x</a>
+        <a href="mailto:brijesharun@gmail.com" aria-label="Email">@</a>
+        <span class="side-line"></span>
+    </aside>
+
     <main>
         <section class="hero">
             <h1 class="hero-name" aria-label="Brijesharun Gurumurthy">
                 <span class="line">Brijesharun</span>
                 <span class="line">Gurumurthy<span class="cursor" aria-hidden="true"></span></span>
             </h1>
-            <div class="hero-intro">
-                <p class="hero-lead" id="heroLead">Software engineer building tools that give AI agents control over Windows desktop applications.</p>
-                <p class="hero-status">MTS at <strong>Zoho Corporation</strong>, shipping WinUI 3 apps to 15K+ users. Creator of <a href="/winappmcp">WinApp MCP</a>. Pursuing M.Tech in Data Science at <strong>SRM</strong>.</p>
-                <p class="hero-location">Chennai, India</p>
+            <div class="hero-body">
+                <div class="hero-intro">
+                    <p class="hero-lead" id="heroLead">Software engineer building tools that give AI agents control over Windows desktop applications.</p>
+                    <p class="hero-status">MTS at <strong>Zoho Corporation</strong>, shipping WinUI 3 apps to 15K+ users. Creator of <a href="/winappmcp">WinApp MCP</a>. Pursuing M.Tech in Data Science at <strong>SRM</strong>.</p>
+                    <p class="hero-location">Chennai, India</p>
+                </div>
+                <div class="hero-terminal" aria-hidden="true">
+                    <div class="terminal-bar">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">winappmcp</span>
+                    </div>
+                    <pre class="terminal-body"><code><span class="t-prompt">$</span> <span class="t-cmd">attach_to_app</span> <span class="t-str">"Calculator"</span>
+<span class="t-ok">✓</span> <span class="t-dim">Attached to Calculator (PID 4821)</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">click_element</span> <span class="t-str">"Seven"</span>
+<span class="t-ok">✓</span> <span class="t-dim">Clicked button "Seven"</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">click_element</span> <span class="t-str">"Plus"</span>
+<span class="t-ok">✓</span> <span class="t-dim">Clicked button "Plus"</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">click_element</span> <span class="t-str">"Three"</span>
+<span class="t-ok">✓</span> <span class="t-dim">Clicked button "Three"</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">click_element</span> <span class="t-str">"Equals"</span>
+<span class="t-ok">✓</span> <span class="t-dim">Result: 10</span>
+
+<span class="t-prompt">$</span> <span class="t-cursor">▌</span></code></pre>
+                </div>
             </div>
         </section>
 
