@@ -100,25 +100,6 @@
         heroLead.textContent = greeting + ' — I build tools that give AI agents control over Windows desktop applications.';
     }
 
-    // ─── Terminal line-by-line reveal ───
-    var terminalBody = document.querySelector('.terminal-body code');
-    if (terminalBody) {
-        var lines = terminalBody.innerHTML.split('\n');
-        terminalBody.innerHTML = '';
-        var delay = 1200; // start after hero animation
-        lines.forEach(function (line, i) {
-            var span = document.createElement('span');
-            span.className = 'term-line';
-            span.innerHTML = line + (i < lines.length - 1 ? '\n' : '');
-            span.style.opacity = '0';
-            span.style.transition = 'opacity 0.3s ease';
-            terminalBody.appendChild(span);
-            setTimeout(function () {
-                span.style.opacity = '1';
-            }, delay + i * 150);
-        });
-    }
-
     // ─── Konami code easter egg ───
     var konamiSequence = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     var konamiIndex = 0;

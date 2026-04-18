@@ -227,7 +227,7 @@ strong {
 
 .hero-body {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr auto;
     gap: var(--space-xl);
     align-items: start;
 }
@@ -315,68 +315,45 @@ strong {
     letter-spacing: 0.02em;
 }
 
-/* ─── Hero Terminal ─── */
+/* ─── Hero Stats ─── */
 
-.hero-terminal {
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    line-height: 1.7;
+.hero-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    padding-top: var(--space-sm);
     opacity: 0;
     transform: translateY(16px);
     animation: hero-in 0.7s var(--ease-out-expo) 0.8s forwards;
 }
 
-.terminal-bar {
+.stat {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 50%, var(--bg-raised));
+    flex-direction: column;
+    gap: 2px;
+    padding-left: var(--space-md);
+    border-left: 2px solid var(--border);
+    transition: border-color 0.3s ease;
 }
 
-.terminal-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border);
+.stat:hover {
+    border-left-color: var(--accent);
 }
 
-.terminal-dot:first-child { background: #e85c4a; }
-.terminal-dot:nth-child(2) { background: #d4a034; }
-.terminal-dot:nth-child(3) { background: #4aad5b; }
+.stat-number {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+}
 
-.terminal-title {
-    margin-left: auto;
-    font-size: 0.68rem;
+.stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
     color: var(--text-secondary);
     letter-spacing: 0.04em;
-}
-
-.terminal-body {
-    padding: 14px 16px;
-    overflow-x: auto;
-    white-space: pre;
-    color: var(--text-secondary);
-}
-
-.terminal-body code {
-    font-family: inherit;
-    font-size: inherit;
-}
-
-.t-prompt { color: var(--accent); }
-.t-cmd { color: var(--text); font-weight: 500; }
-.t-str { color: #d4a034; }
-.t-ok { color: #4aad5b; }
-.t-dim { color: var(--text-secondary); }
-.t-cursor {
-    color: var(--accent);
-    animation: blink 1s steps(1) infinite;
 }
 
 /* ─── Vertical Side Links ─── */
@@ -845,7 +822,7 @@ section {
     .reveal,
     .hero-name .line,
     .hero-intro,
-    .hero-terminal {
+    .hero-stats {
         opacity: 1;
         transform: none;
     }
