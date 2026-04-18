@@ -146,7 +146,7 @@
 
     // ─── Stagger assignment ───
     document.querySelectorAll('.exp-list, .edu-list, .project-grid, .skills-row, .contact-links').forEach(function (parent) {
-        var children = parent.querySelectorAll('.reveal, > *');
+        var children = parent.children;
         children.forEach(function (child, i) {
             child.style.setProperty('--stagger', i);
         });
