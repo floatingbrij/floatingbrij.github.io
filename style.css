@@ -222,13 +222,16 @@ strong {
     justify-content: center;
     padding: 120px clamp(24px, 5vw, 48px) var(--space-xl);
     max-width: var(--max-w);
+    width: 100%;
     perspective: 800px;
 }
 
 .hero-body {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: var(--space-xl);
+    width: 100%;
 }
 
 .hero-name {
@@ -265,6 +268,8 @@ strong {
 .hero-intro {
     max-width: 540px;
     margin-top: var(--space-sm);
+    flex: 1;
+    min-width: 0;
 }
 
 .hero-lead {
@@ -410,6 +415,7 @@ strong {
 section {
     padding: var(--space-2xl) clamp(24px, 5vw, 48px);
     max-width: var(--max-w);
+    width: 100%;
     scroll-snap-align: start;
 }
 
