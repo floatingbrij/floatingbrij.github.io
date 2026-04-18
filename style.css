@@ -28,7 +28,7 @@
     --space-md: 16px;
     --space-lg: 24px;
     --space-xl: 48px;
-    --space-2xl: 96px;
+    --space-2xl: 64px;
 
     --max-w: 1100px;
 
@@ -56,6 +56,7 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-padding-top: 80px;
+    scroll-snap-type: y proximity;
 }
 
 body {
@@ -130,10 +131,34 @@ strong {
     color: var(--accent);
     letter-spacing: -0.02em;
     transition: transform 0.3s var(--ease-out-expo);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+    overflow: hidden;
 }
 
 .wordmark:hover {
     transform: scale(1.06);
+}
+
+.wordmark-role {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 0.5s var(--ease-out-expo),
+                opacity 0.4s var(--ease-out-expo);
+}
+
+.header.past-hero .wordmark-role {
+    max-width: 200px;
+    opacity: 1;
 }
 
 .nav {
@@ -191,11 +216,11 @@ strong {
 /* ─── Hero ─── */
 
 .hero {
-    min-height: 100vh;
+    min-height: 90vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 120px clamp(24px, 5vw, 48px) 80px;
+    padding: 100px clamp(24px, 5vw, 48px) 60px;
     max-width: var(--max-w);
     perspective: 800px;
 }
@@ -207,7 +232,7 @@ strong {
     line-height: 0.92;
     letter-spacing: -0.04em;
     color: var(--text);
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-lg);
     transform-style: preserve-3d;
     will-change: transform;
     transition: transform 0.15s ease-out;
@@ -303,6 +328,7 @@ strong {
 section {
     padding: var(--space-2xl) clamp(24px, 5vw, 48px);
     max-width: var(--max-w);
+    scroll-snap-align: start;
 }
 
 .section-label {
@@ -312,7 +338,7 @@ section {
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-lg);
 }
 
 /* ─── Featured Project ─── */
@@ -320,7 +346,7 @@ section {
 .project-featured {
     border-top: 2px solid var(--accent);
     padding-top: var(--space-lg);
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-xl);
     transition: border-color 0.3s ease;
 }
 
@@ -644,6 +670,62 @@ section {
         opacity: 1;
         transform: none;
     }
+}
+
+/* ─── View Transitions ─── */
+
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: 0.25s var(--ease-out-expo) fade-out;
+}
+
+::view-transition-new(root) {
+    animation: 0.35s var(--ease-out-expo) fade-in;
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* ─── Konami Easter Egg ─── */
+
+.konami-active {
+    --accent: oklch(0.72 0.2 145) !important;
+    --accent-hover: oklch(0.78 0.22 145) !important;
+}
+
+.konami-toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    padding: 12px 24px;
+    background: var(--bg-raised);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    z-index: 300;
+    opacity: 0;
+    transition: transform 0.5s var(--ease-out-expo), opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.konami-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* ─── Time greeting fade ─── */
+
+.hero-lead {
+    transition: opacity 0.4s ease;
 }
 
 /* ─── Reduced Motion ─── */

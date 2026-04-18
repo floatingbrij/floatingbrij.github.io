@@ -10,6 +10,7 @@
     <meta property="og:description" content="Give AI agents eyes and hands on any Windows desktop application. 55 UI automation tools via the Model Context Protocol.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://brijesharun.com/winappmcp">
+    <meta name="view-transition" content="same-origin">
     <meta property="og:image" content="https://raw.githubusercontent.com/floatingbrij/desktop-pilot-mcp/main/assets/icon.png">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/floatingbrij/desktop-pilot-mcp/main/assets/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +37,7 @@
     --space-md: 16px;
     --space-lg: 24px;
     --space-xl: 48px;
-    --space-2xl: 96px;
+    --space-2xl: 64px;
     --max-w: 1100px;
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -57,7 +58,7 @@
     }
 }
 
-html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; scroll-padding-top: 80px; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; scroll-padding-top: 80px; scroll-snap-type: y proximity; }
 body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; }
 ::selection { background: var(--accent); color: var(--bg); }
 a { color: inherit; text-decoration: none; }
@@ -115,9 +116,10 @@ strong { font-weight: 600; color: var(--text); }
 
 /* ─── Hero ─── */
 .hero {
-    min-height: 100vh; display: flex; flex-direction: column;
+    min-height: 90vh; display: flex; flex-direction: column;
     justify-content: center; align-items: center; text-align: center;
-    padding: 120px clamp(24px, 5vw, 48px) 60px;
+    padding: 100px clamp(24px, 5vw, 48px) 50px;
+    scroll-snap-align: start;
 }
 .hero-badge {
     font-family: var(--font-mono); font-size: 0.72rem;
@@ -187,6 +189,7 @@ strong { font-weight: 600; color: var(--text); }
 .section {
     padding: var(--space-2xl) clamp(24px, 5vw, 48px);
     max-width: var(--max-w); margin: 0 auto;
+    scroll-snap-align: start;
 }
 .section-label {
     font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
@@ -432,6 +435,30 @@ tbody tr:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); 
 
 /* ─── Stat counter animation ─── */
 .stat-num { display: inline-block; min-width: 2ch; }
+
+/* ─── View Transitions ─── */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: 0.25s var(--ease-out-expo) vt-out; }
+::view-transition-new(root) { animation: 0.35s var(--ease-out-expo) vt-in; }
+@keyframes vt-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ─── Konami Easter Egg ─── */
+.konami-active {
+    --accent: oklch(0.72 0.2 145) !important;
+    --accent-hover: oklch(0.78 0.22 145) !important;
+}
+.konami-toast {
+    position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    padding: 12px 24px; background: var(--bg-raised);
+    border: 1px solid var(--accent); border-radius: 4px;
+    font-family: var(--font-mono); font-size: 0.78rem;
+    color: var(--accent); z-index: 300; opacity: 0;
+    transition: transform 0.5s var(--ease-out-expo), opacity 0.3s ease;
+    pointer-events: none; white-space: nowrap;
+}
+.konami-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -967,6 +994,47 @@ tbody tr:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); 
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
+    });
+
+    // ─── View Transitions for internal navigation ───
+    if (document.startViewTransition) {
+        document.querySelectorAll('a[href^="/"]').forEach(function (a) {
+            if (a.getAttribute('href').indexOf('#') === 0) return;
+            a.addEventListener('click', function (e) {
+                var href = this.href;
+                if (href === window.location.href) return;
+                e.preventDefault();
+                document.startViewTransition(function () {
+                    window.location.href = href;
+                });
+            });
+        });
+    }
+
+    // ─── Konami code easter egg ───
+    var konamiSeq = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+    var ki = 0;
+    var konamiDone = false;
+    document.addEventListener('keydown', function (e) {
+        if (konamiDone) return;
+        if (e.keyCode === konamiSeq[ki]) {
+            ki++;
+            if (ki === konamiSeq.length) {
+                konamiDone = true;
+                document.documentElement.classList.add('konami-active');
+                var t = document.createElement('div');
+                t.className = 'konami-toast';
+                t.textContent = '\uD83C\uDFAE konami activated \u2014 green mode unlocked';
+                document.body.appendChild(t);
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () { t.classList.add('show'); });
+                });
+                setTimeout(function () {
+                    t.classList.remove('show');
+                    setTimeout(function () { t.remove(); }, 500);
+                }, 4000);
+            }
+        } else { ki = 0; }
     });
 })();
 
