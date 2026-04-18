@@ -155,6 +155,7 @@
     // ─── Scroll reveal (elements + dividers) ───
     var reveals = document.querySelectorAll('.reveal, .divider');
     if (reveals.length && 'IntersectionObserver' in window) {
+        document.documentElement.classList.add('js-ready');
         var observer = new IntersectionObserver(
             function (entries) {
                 entries.forEach(function (entry) {
@@ -164,14 +165,10 @@
                     }
                 });
             },
-            { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+            { threshold: 0, rootMargin: '0px 0px -20px 0px' }
         );
         reveals.forEach(function (el) {
             observer.observe(el);
-        });
-    } else {
-        reveals.forEach(function (el) {
-            el.classList.add('visible');
         });
     }
 

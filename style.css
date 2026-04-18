@@ -401,12 +401,16 @@ strong {
     height: 1px;
     background: var(--border);
     margin: 0 clamp(24px, 5vw, 48px);
-    transform: scaleX(0);
+    transform: scaleX(1);
     transform-origin: left;
     transition: transform 0.8s var(--ease-out-expo);
 }
 
-.divider.visible {
+.js-ready .divider {
+    transform: scaleX(0);
+}
+
+.js-ready .divider.visible {
     transform: scaleX(1);
 }
 
@@ -718,14 +722,19 @@ section {
 /* ─── Reveal ─── */
 
 .reveal {
-    opacity: 0;
-    transform: translateY(16px);
+    opacity: 1;
+    transform: none;
     transition: opacity 0.6s var(--ease-out-expo),
                 transform 0.6s var(--ease-out-expo);
     transition-delay: calc(var(--stagger, 0) * 80ms);
 }
 
-.reveal.visible {
+.js-ready .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+}
+
+.js-ready .reveal.visible {
     opacity: 1;
     transform: none;
 }
